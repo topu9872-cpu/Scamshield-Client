@@ -40,7 +40,7 @@ const FAQ = () => {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="collapse collapse-plus rounded-xl border border-zinc-900 bg-zinc-950/40 transition-all duration-300 hover:border-zinc-800"
+              className="collapse collapse-plus rounded-xl border border-zinc-700 bg-zinc-950/40 transition-all duration-300 hover:border-zinc-800"
             >
               <input type="radio" name="faq-accordion" className="peer" /> 
               
