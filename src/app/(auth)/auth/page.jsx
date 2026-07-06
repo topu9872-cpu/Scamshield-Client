@@ -2,24 +2,86 @@
 
 import React, { useState, useRef } from "react";
 import Image from "next/image";
-import { FaFacebook, FaGithub, FaGoogle } from "react-icons/fa";
+import {
+  FaFacebook,
+  FaGithub,
+  FaGoogle,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
+import { authClient } from "@/lib/auth-Client";
+import ImageBB from "@/Ui/ImageBB";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
 
 export default function AuthPage() {
+  const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
+  const [active, setActive] = useState(false); // Password visibility toggle
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const handleSignUp = async (e) => {
+    e.preventDefault();
 
-  const handleSignUp = (e) => {
-   e.preventDefault()
-   const formData=Object.fromEntries(new FormData(e.target))
-    console.log(formData)
+    const formData = Object.fromEntries(new FormData(e.target));
+
+    if (!imageFile) {
+      toast.error("Please upload an avatar image.");
+      return;
+    }
+
+    try {
+      const imageUrl = await ImageBB(imageFile);
+      const { data, error } = await authClient.signUp.email({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        image: imageUrl,
+      });
+      if (data) {
+        toast.success("Account created successfully!");
+        router.push("/");
+      } else if (error) {
+        toast.error(error.message || "Failed to create account.");
+      }
+    } catch (err) {
+      toast.error("Something went wrong during upload.");
+    }
   };
-  const handleSignIn = (e) => {
-   e.preventDefault()
-   const formData=Object.fromEntries(new FormData(e.target))
-    console.log(formData)
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    const formData = Object.fromEntries(new FormData(e.target));
+
+    const { data, error } = await authClient.signIn.email({
+      email: formData.loginemail,
+      password: formData.loginpassword,
+    });
+
+    if (data) {
+      toast.success("Signed in successfully!");
+      router.push("/");
+    } else if (error) {
+      toast.error(error.message || "Failed to sign in.");
+    }
   };
-  
+
+  // Helper component to keep social button items DRY, clean, and interactive
+  const SocialButton = ({ icon: Icon, name }) => (
+    <div className="group relative">
+      <button
+        type="button"
+        className="h-10 w-10 rounded-full border border-zinc-800 bg-zinc-900/20 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-95 transition-all duration-200"
+      >
+        <Icon className="text-lg" />
+      </button>
+      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-mono font-bold tracking-wider uppercase text-black bg-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-30">
+        {name}
+      </span>
+    </div>
+  );
 
   return (
     <main className="min-h-screen bg-black text-zinc-100 flex items-center justify-center p-4 md:p-10 relative overflow-hidden select-none">
@@ -60,44 +122,9 @@ export default function AuthPage() {
 
               {/* Social Login Icons with Tooltips */}
               <div className="flex items-center justify-center gap-4 py-2">
-                {/* Google */}
-                <div className="group relative">
-                  <button
-                    type="button"
-                    className="h-10 w-10 rounded-full border border-zinc-800 bg-zinc-900/20 flex items-center justify-center hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-95 transition-all duration-200"
-                  >
-                    <FaGoogle className="text-xl" />
-                  </button>
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-mono font-bold tracking-wider uppercase text-black bg-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-30">
-                    Google
-                  </span>
-                </div>
-
-                {/* Facebook */}
-                <div className="group relative">
-                  <button
-                    type="button"
-                    className="h-10 w-10 rounded-full border border-zinc-800 bg-zinc-900/20 flex items-center justify-center hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-95 transition-all duration-200"
-                  >
-                    <FaFacebook className="text-xl" />
-                  </button>
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-mono font-bold tracking-wider uppercase text-black bg-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-30">
-                    Facebook
-                  </span>
-                </div>
-
-                {/* GitHub */}
-                <div className="group relative">
-                  <button
-                    type="button"
-                    className="h-10 w-10 rounded-full border border-zinc-800 bg-zinc-900/20 flex items-center justify-center hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-95 transition-all duration-200"
-                  >
-                    <FaGithub className="text-xl" />
-                  </button>
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-mono font-bold tracking-wider uppercase text-black bg-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-30">
-                    GitHub
-                  </span>
-                </div>
+                <SocialButton icon={FaGoogle} name="Google" />
+                <SocialButton icon={FaFacebook} name="Facebook" />
+                <SocialButton icon={FaGithub} name="GitHub" />
               </div>
 
               <div className="relative flex py-1 items-center font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
@@ -106,16 +133,13 @@ export default function AuthPage() {
                 <div className="grow border-t border-zinc-900"></div>
               </div>
 
-              <form
-                className="space-y-3.5"
-                onSubmit={handleSignIn}
-              >
+              <form className="space-y-3.5" onSubmit={handleSignIn}>
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">
                     Email Address
                   </label>
                   <input
-                  name='loginemail'
+                    name="loginemail"
                     type="email"
                     placeholder="Email Address"
                     className="w-full px-4 py-2.5 rounded-xl bg-zinc-900/30 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors duration-300"
@@ -126,12 +150,22 @@ export default function AuthPage() {
                   <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">
                     Password
                   </label>
-                  <input name='loginpassword'
-                    type="password"
-                    placeholder="Password"
-                    className="w-full px-4 py-2.5 rounded-xl bg-zinc-900/30 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors duration-300"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      name="loginpassword"
+                      type={active ? "text" : "password"}
+                      placeholder="Password"
+                      className="w-full px-4 py-2.5 pr-10 rounded-xl bg-zinc-900/30 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors duration-300"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setActive(!active)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                    >
+                      {active ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
                 </div>
                 <button
                   type="submit"
@@ -176,44 +210,9 @@ export default function AuthPage() {
 
               {/* Social Registration Icons with Tooltips */}
               <div className="flex items-center justify-center gap-4 py-1">
-                {/* Google */}
-                <div className="group relative">
-                  <button
-                    type="button"
-                    className="h-10 w-10 rounded-full border border-zinc-800 bg-zinc-900/20 flex items-center justify-center hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-95 transition-all duration-200"
-                  >
-                    <FaGoogle className="text-xl" />
-                  </button>
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-mono font-bold tracking-wider uppercase text-black bg-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-30">
-                    Google
-                  </span>
-                </div>
-
-                {/* Facebook */}
-                <div className="group relative">
-                  <button
-                    type="button"
-                    className="h-10 w-10 rounded-full border border-zinc-800 bg-zinc-900/20 flex items-center justify-center hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-95 transition-all duration-200"
-                  >
-                    <FaFacebook className="text-xl" />
-                  </button>
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-mono font-bold tracking-wider uppercase text-black bg-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-30">
-                    Facebook
-                  </span>
-                </div>
-
-                {/* GitHub */}
-                <div className="group relative">
-                  <button
-                    type="button"
-                    className="h-10 w-10 rounded-full border border-zinc-800 bg-zinc-900/20 flex items-center justify-center hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-95 transition-all duration-200"
-                  >
-                    <FaGithub className="text-xl" />
-                  </button>
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-mono font-bold tracking-wider uppercase text-black bg-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-30">
-                    GitHub
-                  </span>
-                </div>
+                <SocialButton icon={FaGoogle} name="Google" />
+                <SocialButton icon={FaFacebook} name="Facebook" />
+                <SocialButton icon={FaGithub} name="GitHub" />
               </div>
 
               <div className="relative flex py-0.5 items-center font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
@@ -222,10 +221,7 @@ export default function AuthPage() {
                 <div className="grow border-t border-zinc-900"></div>
               </div>
 
-              <form
-                className="space-y-2.5"
-                onSubmit={handleSignUp}
-              >
+              <form className="space-y-2.5" onSubmit={handleSignUp}>
                 {/* Interactive Avatar Custom File Upload Indicator */}
                 <div className="flex justify-center py-0.5">
                   <div
@@ -257,10 +253,17 @@ export default function AuthPage() {
                       </div>
                     )}
                   </div>
-                  <input  name='image'
+                  <input
+                    name="image"
                     type="file"
                     ref={fileInputRef}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      setImageFile(file);
+                      setImagePreview(URL.createObjectURL(file));
+                    }}
                     className="hidden"
+                    accept="image/*"
                   />
                 </div>
 
@@ -269,7 +272,7 @@ export default function AuthPage() {
                     Full Name
                   </label>
                   <input
-                  name='name'
+                    name="name"
                     type="text"
                     placeholder="Name"
                     className="w-full px-4 py-2 rounded-xl bg-zinc-900/30 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors duration-300"
@@ -281,24 +284,30 @@ export default function AuthPage() {
                     Email Address
                   </label>
                   <input
-                  name='email'
+                    name="email"
                     type="email"
                     placeholder="Email Address"
                     className="w-full px-4 py-2 rounded-xl bg-zinc-900/30 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors duration-300"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-500 mb-0.5">
-                    Password
-                  </label>
-                  <input name='password'
-                    type="password"
+                <div className="relative">
+                  <input
+                    name="password"
+                    type={active ? "text" : "password"}
                     placeholder="Password"
-                    className="w-full px-4 py-2 rounded-xl bg-zinc-900/30 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors duration-300"
+                    className="w-full px-4 py-2.5 pr-10 rounded-xl bg-zinc-900/30 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors duration-300"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setActive(!active)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                  >
+                    {active ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
+
                 <button
                   type="submit"
                   className="w-full py-2 rounded-xl bg-white text-black font-semibold text-sm hover:bg-zinc-200 active:scale-[0.99] transition-all duration-300 mt-1 shadow-lg shadow-white/5"
