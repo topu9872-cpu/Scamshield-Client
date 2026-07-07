@@ -52,22 +52,22 @@ export const adminMenu = [
   },
   {
     title: "Users",
-    href: "/dashboard/admin/users",
+    href: "/dashboard/users",
     icon: Users,
   },
   {
     title: "Scam Reports",
-    href: "/dashboard/admin/reports",
+    href: "/dashboard/reports",
     icon: ShieldAlert,
   },
   {
     title: "Analytics",
-    href: "/dashboard/admin/analytics",
+    href: "/dashboard/analytics",
     icon: BarChart3,
   },
   {
     title: "Settings",
-    href: "/dashboard/admin/settings",
+    href: "/dashboard/settings",
     icon: Settings,
   },
 ];

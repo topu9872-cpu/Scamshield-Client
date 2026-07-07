@@ -1,4 +1,6 @@
-import CompleteAdminDashboard from "@/DashboardComponents/Admin/SingleFileDashboard";
+import { LazyLoader } from "@/Ui/LazyLoder";
+
+const CompleteAdminDashboard =LazyLoader(()=>import("@/DashboardComponents/Admin/SingleFileDashboard")) ;
 
 
 const AdminDashboardPage = () => {
