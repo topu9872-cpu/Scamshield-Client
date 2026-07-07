@@ -1,7 +1,9 @@
+import UserDashboardOverview from "@/DashboardComponents/user/UserDashboardOverview";
+
 const UserDashboardpage = () => {
   return (
     <div>
-        UserDashboardpage
+        <UserDashboardOverview/>
     </div>
   );
 };

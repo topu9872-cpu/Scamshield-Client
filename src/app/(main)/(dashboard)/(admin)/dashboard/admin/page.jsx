@@ -1,7 +1,10 @@
+import CompleteAdminDashboard from "@/DashboardComponents/Admin/SingleFileDashboard";
+
+
 const AdminDashboardPage = () => {
   return (
     <div>
-        AdminDashboardPage 
+<CompleteAdminDashboard/>
     </div>
   );
 };

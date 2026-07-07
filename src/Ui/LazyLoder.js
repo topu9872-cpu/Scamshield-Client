@@ -1,6 +1,10 @@
 import dynamic from "next/dynamic";
 
-export const LazyLoader = (loder) => dynamic(()=>loder,{
-    loading:()=><div flex justify-center items-center><span className="loading loading-spinner loading-lg"></span>
-</div>
-})
+export const LazyLoader = (loader) =>
+  dynamic(loader, {
+    loading: () => (
+      <div className="flex justify-center items-center h-screen">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    ),
+  });

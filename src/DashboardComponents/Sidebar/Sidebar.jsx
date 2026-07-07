@@ -3,18 +3,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Search,
   ShieldAlert,
   History,
   Settings,
-  UserCircle2,
-  LogOut,
+  CircleUserRound, // পূর্বের লগের সাথে মেলাতে আইকন আপডেট করা হয়েছে
   User,
   Users,
   BarChart3,
+  Menu,
+  X,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-Client";
 import { useEffect, useState } from "react";
@@ -73,27 +74,52 @@ export const adminMenu = [
 
 export default function Sidebar() {
   const [activeuser, setActiveuser] = useState(null);
+  const [isOpen, setIsOpen] = useState(false); // Mobile drawer state
+  const [isMounted, setIsMounted] = useState(false); // Hydration ফিক্স করার জন্য মাউন্ট স্টেট
   const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     const hanldeuser = async () => {
-      const data = await getUser(user?.email);
-      setActiveuser(data);
+      if (user?.email) {
+        const data = await getUser(user.email);
+        setActiveuser(data);
+      }
     };
     hanldeuser();
   }, [user?.email]);
-  const activeMenu =activeuser?.role === "admin" ? adminMenu : userMenu;
-  return (
-    <aside className="hidden md:flex h-screen w-72 flex-col border-r border-zinc-900 bg-black text-zinc-100 select-none">
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  const activeMenu = activeuser?.role === "admin" ? adminMenu : userMenu;
+
+  // Shared inner navigation content
+  const SidebarContent = () => (
+    <>
       {/* Premium Tech Header */}
-      <div className="border-b border-zinc-900 p-6 relative">
-        <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          🛡️ <span className="tracking-tight font-extrabold">SCAMSHIELD</span>
-        </h1>
-        <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase mt-1">
-          // AI Threat Matrix
-        </p>
+      <div className="border-b border-zinc-900 p-6 relative flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            🛡️ <span className="tracking-tight font-extrabold">SCAMSHIELD</span>
+          </h1>
+          <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase mt-1">
+            // AI Threat Matrix
+          </p>
+        </div>
+        {/* Mobile close button */}
+        <button 
+          onClick={() => setIsOpen(false)} 
+          className="md:hidden text-zinc-400 hover:text-white transition-colors"
+        >
+          <X size={24} />
+        </button>
       </div>
 
       {/* Navigation Layer */}
@@ -112,7 +138,7 @@ export default function Sidebar() {
                     : "text-zinc-400 hover:text-white"
                 }`}
               >
-                {/* Clean Ultra-High Contrast Sliding Pill */}
+                {/* Active Sliding Pill */}
                 {active && (
                   <motion.div
                     layoutId="activeMenuPill"
@@ -136,36 +162,45 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Bottom Profile and Controls Layer */}
+      {/* Bottom Profile Layer */}
       <div className="border-t border-zinc-900 p-4 space-y-1.5 bg-zinc-950/40 backdrop-blur-md">
-        {/* Dynamic User Profile Card */}
-        <div className="flex items-center gap-3 rounded-xl p-2.5 hover:bg-zinc-900/50 cursor-pointer transition-all duration-200 group border border-transparent hover:border-zinc-900">
-          {user?.image ? (
-            <div className="relative h-9 w-9 rounded-xl overflow-hidden border border-zinc-800">
-              <Image
-                src={user.image}
-                alt={user.name || "User Avatar"}
-                fill
-                className="object-cover"
+        
+        {isMounted ? (
+          <div className="flex items-center gap-3 rounded-xl p-2.5 hover:bg-zinc-900/50 cursor-pointer transition-all duration-200 group border border-transparent hover:border-zinc-900">
+            {user?.image ? (
+              <div className="relative h-9 w-9 rounded-xl overflow-hidden border border-zinc-800">
+                <Image
+                  src={user.image}
+                  alt={user.name || "User Avatar"}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <CircleUserRound
+                size={36}
+                className="text-zinc-500 group-hover:text-zinc-300 transition-colors"
               />
+            )}
+            <div className="truncate flex-1">
+              <p className="font-medium text-sm text-zinc-200 group-hover:text-white truncate">
+                {user?.name || "Anonymous User"}
+              </p>
+              <p className="text-[10px] font-mono tracking-wider text-zinc-500 uppercase truncate">
+                {user?.role === "admin" ? "🛡️ System Admin" : "Verified Node"}
+              </p>
             </div>
-          ) : (
-            <UserCircle2
-              size={36}
-              className="text-zinc-500 group-hover:text-zinc-300 transition-colors"
-            />
-          )}
-          <div className="truncate flex-1">
-            <p className="font-medium text-sm text-zinc-200 group-hover:text-white truncate">
-              {user?.name || "Anonymous User"}
-            </p>
-            <p className="text-[10px] font-mono tracking-wider text-zinc-500 uppercase truncate">
-              {user?.role === "admin" ? "🛡️ System Admin" : "Verified Node"}
-            </p>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-3 p-2.5">
+            <div className="h-9 w-9 rounded-xl bg-zinc-900 animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-3 w-24 bg-zinc-900 rounded animate-pulse" />
+              <div className="h-2 w-16 bg-zinc-900 rounded animate-pulse" />
+            </div>
+          </div>
+        )}
 
-        {/* System Utility Actions */}
         <motion.button
           whileHover={{ x: 4 }}
           className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-xs font-mono text-zinc-400 hover:bg-zinc-900/40 hover:text-white transition-colors duration-200"
@@ -174,6 +209,56 @@ export default function Sidebar() {
           <span>CONFIG_PANEL</span>
         </motion.button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* --- MOBILE TOP HEADER --- */}
+      <div className="md:hidden flex h-16 items-center justify-between bg-black px-6 border-b border-zinc-900 text-white w-full sticky top-0 z-40">
+        <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
+          🛡️ <span className="tracking-tight font-extrabold text-sm">SCAMSHIELD</span>
+        </h1>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="text-zinc-400 hover:text-white transition-colors p-2"
+          aria-label="Open Menu"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* --- DESKTOP SIDEBAR --- */}
+      <aside className="hidden md:flex h-screen w-60 flex-col bg-black text-zinc-100 select-none sticky top-0">
+        <SidebarContent />
+      </aside>
+
+      {/* --- MOBILE DRAWERS/SHEET LAYERS --- */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Dark Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 bg-black z-50 md:hidden"
+            />
+
+            {/* Sliding Panel */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+              className="fixed inset-y-0 left-0 w-72 bg-black text-zinc-100 flex flex-col z-50 md:hidden select-none border-r border-zinc-900 shadow-2xl"
+            >
+              <SidebarContent />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

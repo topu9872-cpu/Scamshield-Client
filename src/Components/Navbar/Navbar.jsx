@@ -1,10 +1,13 @@
 "use client";
+import { getUser } from "@/app/api/serverAction";
 import { authClient } from "@/lib/auth-Client";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const NavbarPage = () => {
+    const [activeuser, setActiveuser] = useState(null);
   const pathName = usePathname();
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -19,7 +22,13 @@ const NavbarPage = () => {
       },
     });
   };
-
+ useEffect(() => {
+    const hanldeuser = async () => {
+      const data = await getUser(user?.email);
+      setActiveuser(data);
+    };
+    hanldeuser();
+  }, [user?.email]);
   const NavData = (
     <>
       <li>
@@ -34,9 +43,9 @@ const NavbarPage = () => {
    {user && (
   <li>
     <Link
-      href={user.role === "admin" ? "/dashboard/admin" : "/dashboard"}
+      href={activeuser?.role === "admin" ? "/dashboard/admin" : "/dashboard"}
       className={`${
-        pathName === (user.role === "admin"
+        pathName === (activeuser?.role === "admin"
           ? "/dashboard/admin"
           : "/dashboard")
           ? "text-white"
@@ -51,8 +60,8 @@ const NavbarPage = () => {
   );
 
   return (
-    <div className="mx-auto w-11/12">
-      <div className="navbar shadow-sm">
+    <div className="border-b border-zinc-800 ">
+      <div className="navbar w-11/12 mx-auto  shadow-sm">
         <div className="navbar-start">
           <div className="dropdown">
             <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -81,8 +90,8 @@ const NavbarPage = () => {
           <Image
             src="https://i.ibb.co.com/Kj1wcBqn/Chat-GPT-Image-Jul-6-2026-09-16-20-PM.png"
             alt="Logo"
-            width={70}
-            height={70}
+            width={60}
+            height={60}
           />
         </div>
         <div className="navbar-center hidden lg:flex">
