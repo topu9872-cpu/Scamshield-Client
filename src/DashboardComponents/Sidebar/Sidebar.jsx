@@ -29,17 +29,17 @@ export const userMenu = [
   },
   {
     title: "Scan",
-    href: "/dashboard/scan",
+    href: "/scan",
     icon: Search,
   },
   {
     title: "History",
-    href: "/dashboard/history",
+    href: "/history",
     icon: History,
   },
   {
     title: "Profile",
-    href: "/dashboard/profile",
+    href: "/profile",
     icon: User,
   },
 ];

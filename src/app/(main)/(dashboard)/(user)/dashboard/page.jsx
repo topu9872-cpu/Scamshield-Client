@@ -1,4 +1,6 @@
-import UserDashboardOverview from "@/DashboardComponents/user/UserDashboardOverview";
+import { LazyLoader } from "@/Ui/LazyLoder";
+
+const UserDashboardOverview =LazyLoader(()=>import("@/DashboardComponents/user/UserDashboardOverview")) ;
 
 const UserDashboardpage = () => {
   return (
