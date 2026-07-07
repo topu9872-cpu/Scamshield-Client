@@ -14,7 +14,7 @@ const NavbarPage = () => {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push("/auth"); 
+          router.push("/auth");
         },
       },
     });
@@ -31,14 +31,22 @@ const NavbarPage = () => {
         </Link>
       </li>
 
-      <li>
-        <Link
-          href="/dashboard"
-          className={` ${pathName === "/dashboard" ? "text-white" : "text-gray-400"} text-[15px] font-bold`}
-        >
-          Dashboard
-        </Link>
-      </li>
+   {user && (
+  <li>
+    <Link
+      href={user.role === "admin" ? "/dashboard/admin" : "/dashboard"}
+      className={`${
+        pathName === (user.role === "admin"
+          ? "/dashboard/admin"
+          : "/dashboard")
+          ? "text-white"
+          : "text-gray-400"
+      } text-[15px] font-bold`}
+    >
+      Dashboard
+    </Link>
+  </li>
+)}
     </>
   );
 

@@ -1,9 +1,10 @@
-import NavbarPage from "@/Components/Navbar/Navbar";
+import Sidebar from "@/DashboardComponents/Sidebar/Sidebar";
+
 
 const LayoutPage = ({children}) => {
   return (
     <div>
-      <NavbarPage/>
+    <Sidebar/>
       {children}</div>
   );
 };
