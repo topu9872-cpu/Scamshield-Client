@@ -1,5 +1,4 @@
-export const ImageBB = async (file ) => {
-  console.log(file);
+export const ImageBB = async (file) => {
   if (!file) throw new Error("File is required");
   const formData = new FormData();
   formData.append("image", file);
@@ -10,11 +9,9 @@ export const ImageBB = async (file ) => {
       body: formData,
     },
   );
-  console.log('response',response.status);
 
   const data = await response.json();
 
-console.log('data',data);
   if (!response.ok) throw new Error(data.error || "Failed to upload image");
   return data.data.url;
 };

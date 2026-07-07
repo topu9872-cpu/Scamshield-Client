@@ -9,7 +9,7 @@ const Footer = () => {
         {/* Logo & Description */}
         <div>
           <h2 className="text-2xl font-bold text-white">
-            Scam<span className="text-primary">Shield</span>
+            Scam<span className="text-gray-400">Shield</span>
           </h2>
 
           <p className="mt-4 text-sm leading-7 text-gray-400">
@@ -58,20 +58,20 @@ const Footer = () => {
           <h3 className="text-lg font-semibold text-white mb-4">Connect</h3>
 
           <div className="flex gap-4 text-2xl mb-5">
-            <a href="#">
+            <a href="https://github.com/topu9872-cpu">
               <FaGithub />
             </a>
-            <a href="#">
+            <a href="https://www.linkedin.com/in/mehedi-hasan-topu">
               <FaLinkedin />
             </a>
-            <a href="#">
+            <a href="https://www.facebook.com/profile.php?id=61578488636020">
               <FaFacebook />
             </a>
           </div>
 
           <div className="flex items-center gap-2 text-gray-400">
             <MdEmail />
-            <span>support@scamshield.com</span>
+            <span>topu987@gmail.com</span>
           </div>
         </div>
       </div>

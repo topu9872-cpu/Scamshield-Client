@@ -14,7 +14,7 @@ const NavbarPage = () => {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push("/auth"); // redirect to login page
+          router.push("/auth"); 
         },
       },
     });
@@ -82,31 +82,32 @@ const NavbarPage = () => {
         </div>
 
         <div className="navbar-end">
-          {isPending ? <span className="loading loading-spinner"></span>:
-        <div>
-            {user ? (
-            <div className="flex gap-4 items-center">
-              <h1 className="max-w-26 hover:max-w-xs truncate transition-all duration-2000 ease-in-out cursor-pointer">
-  Hi, {user?.name || "Guest"}
-</h1>
-               <button
-              onClick={handleLogout}
-              className="btn bg-black text-white font-bold border border-white/70"
-            >
-              Logout
-            </button>
-             
-            </div>
+          {isPending ? (
+            <span className="loading loading-spinner"></span>
           ) : (
-            <Link
-                href="/auth"
-                className="btn bg-black text-white font-bold border border-white/70"
-              >
-                Login
-              </Link>
+            <div>
+              {user ? (
+                <div className="flex gap-4 items-center">
+                  <h1 className="max-w-26 hover:max-w-xs truncate transition-all duration-2000 ease-in-out cursor-pointer">
+                    Hi, {user?.name || "Guest"}
+                  </h1>
+                  <button
+                    onClick={handleLogout}
+                    className="btn bg-black text-white font-bold border border-white/70"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="btn bg-black text-white font-bold border border-white/70"
+                >
+                  Login
+                </Link>
+              )}
+            </div>
           )}
-        </div>
-        }
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ import { authClient } from "@/lib/auth-Client";
 import ImageBB from "@/Ui/ImageBB";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
+import { WellComeUser } from "@/app/api/serverAction";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -40,9 +40,15 @@ export default function AuthPage() {
         name: formData.name,
         image: imageUrl,
       });
+
       if (data) {
         toast.success("Account created successfully!");
-        router.push("/");
+          router.push("/");
+        await WellComeUser({
+          name: data?.user?.name,
+          email: data?.user?.email,
+        });
+      
       } else if (error) {
         toast.error(error.message || "Failed to create account.");
       }
@@ -63,6 +69,11 @@ export default function AuthPage() {
     if (data) {
       toast.success("Signed in successfully!");
       router.push("/");
+       await WellComeUser({
+          name: data?.user?.name,
+          email: data?.user?.email,
+        });
+      
     } else if (error) {
       toast.error(error.message || "Failed to sign in.");
     }
@@ -334,7 +345,7 @@ export default function AuthPage() {
 
         {/* ================= FOREGROUND SLIDING OVERLAY PANEL ================= */}
         <div
-          className="hidden md:flex absolute top-0 bottom-0 w-1/2 bg-zinc-950 border border-zinc-900 z-20 flex flex-col justify-between p-12 overflow-hidden shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+          className="hidden md:flex absolute top-0 bottom-0 w-1/2 bg-zinc-950 border border-zinc-900 z-20 flex-col justify-between p-12 overflow-hidden shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
           style={{
             transform: isSignUp ? "translateX(0%)" : "translateX(100%)",
             borderRadius: isSignUp ? "31px 0px 0px 31px" : "0px 31px 31px 0px",
