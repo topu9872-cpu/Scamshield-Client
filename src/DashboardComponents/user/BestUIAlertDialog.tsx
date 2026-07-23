@@ -8,7 +8,7 @@ export function DeleteProjectDialog() {
     <AlertDialog>
       <Button
   isIconOnly
-  variant="light"
+  variant="ghost"
   className="h-8 w-8 rounded-lg text-gray-400 transition-all duration-200 hover:bg-red-500/10 hover:text-red-500"
 >
   <Trash2 size={16} />

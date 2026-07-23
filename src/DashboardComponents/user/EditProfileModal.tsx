@@ -93,19 +93,30 @@ export default function EditProfileModal() {
                   </form>
                 </Surface>
 
-                <Surface variant="default" className="rounded-2xl p-5 bg-neutral-900/30 border border-neutral-800">
-                  <h3 className="mb-5 text-lg font-semibold">Social Links</h3>
-                  <div className="space-y-4">
-                    <TextField variant="secondary">
-                      <Label className="text-xs text-neutral-500">GitHub</Label>
-                      <Input startContent={<FaGithub className="text-neutral-500" />} className="bg-black border-neutral-800 text-white" placeholder="https://github.com/username" />
-                    </TextField>
-                    <TextField variant="secondary">
-                      <Label className="text-xs text-neutral-500">LinkedIn</Label>
-                      <Input startContent={<FaLinkedin className="text-neutral-500" />} className="bg-black border-neutral-800 text-white" placeholder="https://linkedin.com/in/username" />
-                    </TextField>
-                  </div>
-                </Surface>
+              <Surface variant="default" className="rounded-2xl p-5 bg-neutral-900/30 border border-neutral-800">
+        <h3 className="mb-5 text-lg font-semibold">Social Links</h3>
+        <div className="space-y-4">
+          <TextField variant="secondary">
+            <Label className="text-xs text-neutral-500">GitHub</Label>
+            <div className="relative flex items-center">
+              <span className="absolute left-3 flex items-center pointer-events-none">
+                <FaGithub className="text-neutral-500" />
+              </span>
+              <Input className="bg-black border-neutral-800 text-white pl-10" placeholder="https://github.com/username" />
+            </div>
+          </TextField>
+          
+          <TextField variant="secondary">
+            <Label className="text-xs text-neutral-500">LinkedIn</Label>
+            <div className="relative flex items-center">
+              <span className="absolute left-3 flex items-center pointer-events-none">
+                <FaLinkedin className="text-neutral-500" />
+              </span>
+              <Input className="bg-black border-neutral-800 text-white pl-10" placeholder="https://linkedin.com/in/username" />
+            </div>
+          </TextField>
+        </div>
+      </Surface>
               </Modal.Body>
 
               <Modal.Footer className="border-t border-neutral-800 p-6">

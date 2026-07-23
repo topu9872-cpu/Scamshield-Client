@@ -1,5 +1,14 @@
+import React from "react";
+
+interface Step {
+  id: number;
+  title: string;
+  description: string;
+  isAi?: boolean;
+}
+
 export default function HowItWorks() {
-  const steps = [
+  const steps: Step[] = [
     {
       id: 1,
       title: "Submit",
@@ -11,7 +20,7 @@ export default function HowItWorks() {
       title: "AI Analysis",
       description:
         "Our AI analyzes the content, checks for phishing patterns, and identifies potential threats.",
-      isAi: true, // Renders a sleek pulsing radar indicator
+      isAi: true, 
     },
     {
       id: 3,
@@ -54,7 +63,6 @@ export default function HowItWorks() {
                     alt="ScamShield Icon"
                     className="h-7 w-7 object-contain brightness-0 invert opacity-90 group-hover:opacity-100 transition-opacity"
                   />
-                 
                 </div>
 
                 {/* Monospace Step Badge */}

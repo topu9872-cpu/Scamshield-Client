@@ -1,6 +1,8 @@
+// @ts-nocheck
 import dynamic from "next/dynamic";
+import React from "react";
 
-export const LazyLoader = (loader) =>
+export const LazyLoader = (loader: any) =>
   dynamic(loader, {
     loading: () => (
       <div className="flex justify-center items-center h-screen">

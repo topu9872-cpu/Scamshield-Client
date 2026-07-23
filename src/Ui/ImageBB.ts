@@ -1,4 +1,4 @@
-export const ImageBB = async (file) => {
+export const ImageBB = async (file:File) => {
   if (!file) throw new Error("File is required");
   const formData = new FormData();
   formData.append("image", file);

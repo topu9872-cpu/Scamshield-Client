@@ -81,7 +81,7 @@ const NavbarPage = () => {
               </svg>
             </div>
             <ul
-              tabIndex="-1"
+              tabIndex={1}
               className="menu menu-sm dropdown-content bg-black border rounded-box mt-3 w-52 p-2 shadow"
             >
               {NavData}

@@ -14,7 +14,12 @@ import ImageBB from "@/Ui/ImageBB";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { WellComeUser } from "@/app/api/serverAction";
-
+interface SignUpData {
+  email: string;
+  password: string;
+  name: string;
+  image?: string;
+}
 export default function AuthPage() {
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -22,63 +27,71 @@ export default function AuthPage() {
   const [active, setActive] = useState(false); // Password visibility toggle
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const handleSignUp = async (e) => {
-    e.preventDefault();
+const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    const formData = Object.fromEntries(new FormData(e.target));
+  const formData = Object.fromEntries(new FormData(e.currentTarget));
 
-    if (!imageFile) {
-      toast.error("Please upload an avatar image.");
-      return;
-    }
+  if (!imageFile) {
+    toast.error("Please upload an avatar image.");
+    return;
+  }
 
-    try {
-      const imageUrl = await ImageBB(imageFile);
-      const { data, error } = await authClient.signUp.email({
-        email: formData.email,
-        password: formData.password,
-        name: formData.name,
-        image: imageUrl,
-      });
+  try {
+    const imageUrl = await ImageBB(imageFile);
 
-      if (data) {
-        toast.success("Account created successfully!");
-          router.push("/");
-        await WellComeUser({
-          name: data?.user?.name,
-          email: data?.user?.email,
-        });
-      
-      } else if (error) {
-        toast.error(error.message || "Failed to create account.");
-      }
-    } catch (err) {
-      toast.error("Something went wrong during upload.");
-    }
-  };
+    const signUpData: SignUpData = {
+      email: String(formData.email),
+      password: String(formData.password),
+      name: String(formData.name),
+      image: imageUrl,
+   
+    };
 
-  const handleSignIn = async (e) => {
-    e.preventDefault();
-    const formData = Object.fromEntries(new FormData(e.target));
-
-    const { data, error } = await authClient.signIn.email({
-      email: formData.loginemail,
-      password: formData.loginpassword,
-    });
+    const { data, error } = await authClient.signUp.email(signUpData);
 
     if (data) {
-      toast.success("Signed in successfully!");
+      toast.success("Account created successfully!");
       router.push("/");
-       await WellComeUser({
-          name: data?.user?.name,
-          email: data?.user?.email,
-        });
-      
-    } else if (error) {
-      toast.error(error.message || "Failed to sign in.");
-    }
-  };
 
+      await WellComeUser({
+       data: {
+        name: data.user.name,
+        email: data.user.email,
+      },
+      });
+    } else if (error) {
+      toast.error(error.message || "Failed to create account.");
+    }
+  } catch (err) {
+    toast.error("Something went wrong during upload.");
+  }
+};
+const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  const formData = Object.fromEntries(new FormData(e.currentTarget));
+
+  const { data, error } = await authClient.signIn.email({
+    email: String(formData.loginemail),
+    password: String(formData.loginpassword),
+  });
+
+  if (data) {
+    toast.success("Signed in successfully!");
+
+    await WellComeUser({
+      data: {
+        name: data.user.name,
+        email: data.user.email,
+      },
+    });
+
+    router.push("/");
+  } else if (error) {
+    toast.error(error.message || "Failed to sign in.");
+  }
+};
   // Helper component to keep social button items DRY, clean, and interactive
   const SocialButton = ({ icon: Icon, name }) => (
     <div className="group relative">

@@ -10,7 +10,7 @@ import {
   ShieldAlert,
   History,
   Settings,
-  CircleUserRound, // পূর্বের লগের সাথে মেলাতে আইকন আপডেট করা হয়েছে
+  CircleUserRound,
   User,
   Users,
   BarChart3,
@@ -114,8 +114,8 @@ export default function Sidebar() {
           </p>
         </div>
         {/* Mobile close button */}
-        <button 
-          onClick={() => setIsOpen(false)} 
+        <button
+          onClick={() => setIsOpen(false)}
           className="md:hidden text-zinc-400 hover:text-white transition-colors"
         >
           <X size={24} />
@@ -164,7 +164,6 @@ export default function Sidebar() {
 
       {/* Bottom Profile Layer */}
       <div className="border-t border-zinc-900 p-4 space-y-1.5 bg-zinc-950/40 backdrop-blur-md">
-        
         {isMounted ? (
           <div className="flex items-center gap-3 rounded-xl p-2.5 hover:bg-zinc-900/50 cursor-pointer transition-all duration-200 group border border-transparent hover:border-zinc-900">
             {user?.image ? (
@@ -187,7 +186,9 @@ export default function Sidebar() {
                 {user?.name || "Anonymous User"}
               </p>
               <p className="text-[10px] font-mono tracking-wider text-zinc-500 uppercase truncate">
-                {user?.role === "admin" ? "🛡️ System Admin" : "Verified Node"}
+                {(user as typeof user & { role?: string })?.role === "admin"
+                  ? "🛡️ System Admin"
+                  : "Verified Node"}{" "}
               </p>
             </div>
           </div>
@@ -217,7 +218,10 @@ export default function Sidebar() {
       {/* --- MOBILE TOP HEADER --- */}
       <div className="md:hidden flex h-16 items-center justify-between bg-black px-6 border-b border-zinc-900 text-white w-full sticky top-0 z-40">
         <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
-          🛡️ <span className="tracking-tight font-extrabold text-sm">SCAMSHIELD</span>
+          🛡️{" "}
+          <span className="tracking-tight font-extrabold text-sm">
+            SCAMSHIELD
+          </span>
         </h1>
         <button
           onClick={() => setIsOpen(true)}

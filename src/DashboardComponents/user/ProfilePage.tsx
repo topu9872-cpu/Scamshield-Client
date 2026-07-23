@@ -7,7 +7,8 @@ import {
   Settings, History, Save, Edit2, Lock, Bell, LogOut 
 } from "lucide-react";
 import { toast } from "sonner";
-import EditProfileModal from "./EditProfileModal";
+import { LazyLoader } from "@/Ui/LazyLoder";
+const EditProfileModal =LazyLoader(()=>import("./EditProfileModal")) ;
 
 
 

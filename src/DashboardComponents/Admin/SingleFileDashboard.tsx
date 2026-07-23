@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { 
   LineChart, 
   Line, 
@@ -65,9 +65,21 @@ const containerVariants = {
   visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 110, damping: 16 } },
+
+const itemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 50,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15,
+    },
+  },
 };
 
 // --- INLINE ELASTIC COUNT ENGINE ---

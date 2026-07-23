@@ -3,8 +3,8 @@ import Link from "next/link";
 
 export default function Banner() {
   return (
-    <section className="hero min-h-[90vh]  bg-black text-zinc-100 overflow-hidden relative">
-      <div className="hero-content flex-col-reverse w-11/12 max-auto lg:flex-row-reverse gap-12 z-10">
+    <section className="hero min-h-[90vh] bg-black text-zinc-100 overflow-hidden relative">
+      <div className="hero-content flex-col-reverse w-11/12 max-w-7xl mx-auto lg:flex-row-reverse gap-12 z-10 py-16">
         {/* Right Side */}
         <div className="flex-1 flex justify-center relative">
           {/* Subtle sharp white ring accent behind image instead of a color glow */}

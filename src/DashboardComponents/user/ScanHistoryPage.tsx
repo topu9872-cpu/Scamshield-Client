@@ -90,7 +90,7 @@ export default function ScanHistoryPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="py-10 text-center text-neutral-500 text-sm">
+                    <td colSpan={4} className="py-10 text-center text-neutral-500 text-sm">
                       No results found for your filter.
                     </td>
                   </tr>

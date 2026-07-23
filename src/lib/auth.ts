@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth} from "better-auth";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
@@ -7,9 +7,18 @@ const db = client.db('Scamshield');
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, {
-    // Optional: if you don't provide a client, database transactions won't be enabled.
     client
   }),
+
+   user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+      
+      },
+    }
+  },
 
    emailAndPassword: { 
     enabled: true, 
