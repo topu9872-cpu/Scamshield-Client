@@ -73,11 +73,11 @@ export const adminMenu = [
 ];
 
 export default function Sidebar() {
-  const [activeuser, setActiveuser] = useState(null);
-  const [isOpen, setIsOpen] = useState(false); // Mobile drawer state
-  const [isMounted, setIsMounted] = useState(false); // Hydration ফিক্স করার জন্য মাউন্ট স্টেট
+  const [activeuser, setActiveuser] = useState<any>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session } = authClient.useSession();
   const user = session?.user;
 
   useEffect(() => {
@@ -85,22 +85,28 @@ export default function Sidebar() {
   }, []);
 
   useEffect(() => {
-    const hanldeuser = async () => {
+    const handleUser = async () => {
       if (user?.email) {
-        const data = await getUser(user.email);
-        setActiveuser(data);
+        try {
+          const data = await getUser(user.email);
+          setActiveuser(data);
+        } catch (error) {
+          console.error("Failed to fetch user role:", error);
+        }
       }
     };
-    hanldeuser();
+    handleUser();
   }, [user?.email]);
+
+  console.log(user)
 
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
-  const activeMenu = activeuser?.role === "admin" ? adminMenu : userMenu;
-
-  // Shared inner navigation content
+  // Check session user role first (if available), then fallback to database activeuser state
+const userRole = isMounted ? (user as any)?.role || activeuser?.role : null;
+  const activeMenu = userRole === "admin" ? adminMenu : userMenu;
   const SidebarContent = () => (
     <>
       {/* Premium Tech Header */}
@@ -110,7 +116,7 @@ export default function Sidebar() {
             🛡️ <span className="tracking-tight font-extrabold">SCAMSHIELD</span>
           </h1>
           <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase mt-1">
-            // AI Threat Matrix
+            AI Threat Matrix
           </p>
         </div>
         {/* Mobile close button */}
@@ -186,9 +192,9 @@ export default function Sidebar() {
                 {user?.name || "Anonymous User"}
               </p>
               <p className="text-[10px] font-mono tracking-wider text-zinc-500 uppercase truncate">
-                {(user as typeof user & { role?: string })?.role === "admin"
+                {activeuser?.role === "admin"
                   ? "🛡️ System Admin"
-                  : "Verified Node"}{" "}
+                  : "Verified Node"}
               </p>
             </div>
           </div>

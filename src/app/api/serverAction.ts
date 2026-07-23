@@ -6,5 +6,6 @@ export const WellComeUser = async (data:{data: Users}) => {
 };
 
 export const getUser = async (email: string) => {
+
   return getData(`/user/${email}`);
 };
