@@ -14,12 +14,20 @@ import ImageBB from "@/Ui/ImageBB";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { WellComeUser } from "@/app/api/serverAction";
+import { IconType } from "react-icons";
 interface SignUpData {
   email: string;
   password: string;
   name: string;
   image?: string;
 }
+
+interface SocialButtonProps {
+  icon: IconType;
+  name: string;
+  onClick: () => void | Promise<void>;
+}
+
 export default function AuthPage() {
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -27,80 +35,106 @@ export default function AuthPage() {
   const [active, setActive] = useState(false); // Password visibility toggle
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const formData = Object.fromEntries(new FormData(e.currentTarget));
+    const formData = Object.fromEntries(new FormData(e.currentTarget));
 
-  if (!imageFile) {
-    toast.error("Please upload an avatar image.");
-    return;
-  }
-
-  try {
-    const imageUrl = await ImageBB(imageFile);
-
-    const signUpData: SignUpData = {
-      email: String(formData.email),
-      password: String(formData.password),
-      name: String(formData.name),
-      image: imageUrl,
-   
-    };
-
-    const { data, error } = await authClient.signUp.email(signUpData);
-
-    if (data) {
-      toast.success("Account created successfully!");
-      router.push("/");
-
-      await WellComeUser({
-       data: {
-        name: data.user.name,
-        email: data.user.email,
-      },
-      });
-    } else if (error) {
-      toast.error(error.message || "Failed to create account.");
+    if (!imageFile) {
+      toast.error("Please upload an avatar image.");
+      return;
     }
-  } catch (err) {
-    toast.error("Something went wrong during upload.");
-  }
-};
-const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
 
-  const formData = Object.fromEntries(new FormData(e.currentTarget));
+    try {
+      const imageUrl = await ImageBB(imageFile);
 
-  const { data, error } = await authClient.signIn.email({
-    email: String(formData.loginemail),
-    password: String(formData.loginpassword),
-  });
+      const signUpData: SignUpData = {
+        email: String(formData.email),
+        password: String(formData.password),
+        name: String(formData.name),
+        image: imageUrl,
+      };
 
-  if (data) {
-    toast.success("Signed in successfully!");
+      const { data, error } = await authClient.signUp.email(signUpData);
 
-    await WellComeUser({
-      data: {
-        name: data.user.name,
-        email: data.user.email,
-      },
+      if (data) {
+        toast.success("Account created successfully!");
+        router.push("/");
+
+        await WellComeUser({
+          data: {
+            name: data.user.name,
+            email: data.user.email,
+          },
+        });
+      } else if (error) {
+        toast.error(error.message || "Failed to create account.");
+      }
+    } catch (err) {
+      toast.error("Something went wrong during upload.");
+    }
+  };
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = Object.fromEntries(new FormData(e.currentTarget));
+
+    const { data, error } = await authClient.signIn.email({
+      email: String(formData.loginemail),
+      password: String(formData.loginpassword),
     });
 
-    router.push("/");
-  } else if (error) {
-    toast.error(error.message || "Failed to sign in.");
-  }
+    if (data) {
+      toast.success("Signed in successfully!");
+
+      await WellComeUser({
+        data: {
+          name: data.user.name,
+          email: data.user.email,
+        },
+      });
+
+      router.push("/");
+    } else if (error) {
+      toast.error(error.message || "Failed to sign in.");
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const data = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
+  };
+  const handleGitHubSignIn = async () => {
+    const data = await authClient.signIn.social({
+      provider: "github",
+      callbackURL: "/",
+    });
+  };
+ const handleFacebookSignIn = async () => {
+  await authClient.signIn.social({
+  provider: "facebook",
+  callbackURL: "/",
+});
 };
-  // Helper component to keep social button items DRY, clean, and interactive
-  const SocialButton = ({ icon: Icon, name }) => (
+
+  interface SocialButtonProps {
+    icon: IconType;
+    name: string;
+    onClick: () => void | Promise<void>;
+  }
+
+  const SocialButton = ({ icon: Icon, name, onClick }: SocialButtonProps) => (
     <div className="group relative">
       <button
         type="button"
+        onClick={onClick}
         className="h-10 w-10 rounded-full border border-zinc-800 bg-zinc-900/20 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-600 hover:bg-zinc-900/60 active:scale-95 transition-all duration-200"
       >
         <Icon className="text-lg" />
       </button>
+
       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-[10px] font-mono font-bold tracking-wider uppercase text-black bg-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-30">
         {name}
       </span>
@@ -146,9 +180,23 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
 
               {/* Social Login Icons with Tooltips */}
               <div className="flex items-center justify-center gap-4 py-2">
-                <SocialButton icon={FaGoogle} name="Google" />
-                <SocialButton icon={FaFacebook} name="Facebook" />
-                <SocialButton icon={FaGithub} name="GitHub" />
+                <SocialButton
+                  onClick={handleGoogleSignIn}
+                  icon={FaGoogle}
+                  name="Google"
+                />
+
+                <SocialButton
+                  onClick={handleFacebookSignIn}
+                  icon={FaFacebook}
+                  name="Facebook"
+                />
+
+                <SocialButton
+                  onClick={handleGitHubSignIn}
+                  icon={FaGithub}
+                  name="GitHub"
+                />
               </div>
 
               <div className="relative flex py-1 items-center font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
@@ -234,9 +282,23 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
 
               {/* Social Registration Icons with Tooltips */}
               <div className="flex items-center justify-center gap-4 py-1">
-                <SocialButton icon={FaGoogle} name="Google" />
-                <SocialButton icon={FaFacebook} name="Facebook" />
-                <SocialButton icon={FaGithub} name="GitHub" />
+                <SocialButton
+                  onClick={handleGoogleSignIn}
+                  icon={FaGoogle}
+                  name="Google"
+                />
+
+                <SocialButton
+                  onClick={handleFacebookSignIn}
+                  icon={FaFacebook}
+                  name="Facebook"
+                />
+
+                <SocialButton
+                  onClick={handleGitHubSignIn}
+                  icon={FaGithub}
+                  name="GitHub"
+                />
               </div>
 
               <div className="relative flex py-0.5 items-center font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
