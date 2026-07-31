@@ -249,7 +249,7 @@ const ScamReportsDashboard = () => {
                   
                   {filteredReports.length === 0 && (
                     <tr>
-                      <td colSpan="4" className="text-center py-12 text-neutral-500 font-mono text-xs">
+                      <td colSpan={4} className="text-center py-12 text-neutral-500 font-mono text-xs">
                         No pending fraud vectors matching filter constraints.
                       </td>
                     </tr>

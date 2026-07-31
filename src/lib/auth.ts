@@ -16,14 +16,20 @@ export const auth = betterAuth({
         required: false,
         input: false,
       },
+      username: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+      bio: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+
     },
   },
-  account: {
-    accountLinking: {
-      enabled: true,
-      trustedProviders: ["google", "github", "facebook"],
-    },
-  },
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -33,10 +39,10 @@ export const auth = betterAuth({
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
     },
-    facebook: {
-      clientId: process.env.FACEBOOK_CLIENT_ID as string,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string,
-    },
+    // facebook: {
+    //   clientId: process.env.FACEBOOK_CLIENT_ID as string,
+    //   clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string,
+    // },
   },
 } as const);
 

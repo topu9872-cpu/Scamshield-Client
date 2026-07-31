@@ -112,12 +112,12 @@ export default function AuthPage() {
       callbackURL: "/",
     });
   };
- const handleFacebookSignIn = async () => {
-  await authClient.signIn.social({
-  provider: "facebook",
-  callbackURL: "/",
-});
-};
+//  const handleFacebookSignIn = async () => {
+//   await authClient.signIn.social({
+//   provider: "facebook",
+//   callbackURL: "/",
+// });
+// };
 
   interface SocialButtonProps {
     icon: IconType;
@@ -186,11 +186,11 @@ export default function AuthPage() {
                   name="Google"
                 />
 
-                <SocialButton
+                {/* <SocialButton
                   onClick={handleFacebookSignIn}
                   icon={FaFacebook}
                   name="Facebook"
-                />
+                /> */}
 
                 <SocialButton
                   onClick={handleGitHubSignIn}
@@ -288,11 +288,11 @@ export default function AuthPage() {
                   name="Google"
                 />
 
-                <SocialButton
+                {/* <SocialButton
                   onClick={handleFacebookSignIn}
                   icon={FaFacebook}
                   name="Facebook"
-                />
+                /> */}
 
                 <SocialButton
                   onClick={handleGitHubSignIn}
