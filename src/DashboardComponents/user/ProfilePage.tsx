@@ -1,15 +1,17 @@
 "use client";
 
-import React from "react";
 import { motion } from "framer-motion";
 import { User, Mail, Calendar, ShieldCheck, Lock, Bell } from "lucide-react";
 import { LazyLoader } from "@/Ui/LazyLoder";
 import { authClient } from "@/lib/auth-Client";
 import Image from "next/image";
+import ChangePasswordSection from "./ChangePasswordForm";
 
 const EditProfileModal = LazyLoader(() => import("./EditProfileModal"));
 
 export default function UserProfilePage() {
+
+
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
@@ -25,12 +27,16 @@ export default function UserProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#07070a] text-neutral-200 flex items-center justify-center">
-        <div className="text-neutral-400">Please sign in to view your profile.</div>
+        <div className="text-neutral-400">
+          Please sign in to view your profile.
+        </div>
       </div>
     );
   }
 
-  const joinedYear = user?.createdAt ? new Date(user.createdAt).getFullYear() : null;
+  const joinedYear = user?.createdAt
+    ? new Date(user.createdAt).getFullYear()
+    : null;
 
   return (
     <div className="min-h-screen bg-[#07070a] text-neutral-200 p-6 md:p-12">
@@ -70,7 +76,7 @@ export default function UserProfilePage() {
               )}
             </div>
           </div>
-          <EditProfileModal/>
+          <EditProfileModal />
         </div>
 
         {/* Content Grid */}
@@ -93,10 +99,8 @@ export default function UserProfilePage() {
                 <Lock size={18} /> Security
               </h3>
               <div className="space-y-3">
-                <button className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors text-left">
-                  <span className="text-sm">Change Password</span>
-                  <Lock size={14} className="text-neutral-500" />
-                </button>
+               
+                <ChangePasswordSection/>
                 <button className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors text-left">
                   <span className="text-sm">Notifications</span>
                   <Bell size={14} className="text-neutral-500" />
