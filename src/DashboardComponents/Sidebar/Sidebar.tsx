@@ -22,92 +22,37 @@ import { useEffect, useState } from "react";
 import { getUser } from "@/app/api/serverAction";
 
 export const userMenu = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Scan",
-    href: "/scan",
-    icon: Search,
-  },
-  {
-    title: "History",
-    href: "/history",
-    icon: History,
-  },
-  {
-    title: "Profile",
-    href: "/profile",
-    icon: User,
-  },
+  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Scan", href: "/scan", icon: Search },
+  { title: "History", href: "/history", icon: History },
+  { title: "Profile", href: "/profile", icon: User },
 ];
 
 export const adminMenu = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Users",
-    href: "/dashboard/users",
-    icon: Users,
-  },
-  {
-    title: "Scam Reports",
-    href: "/dashboard/reports",
-    icon: ShieldAlert,
-  },
-  {
-    title: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-  },
+  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Users", href: "/dashboard/users", icon: Users },
+  { title: "Scam Reports", href: "/dashboard/reports", icon: ShieldAlert },
+  { title: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { title: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export default function Sidebar() {
-  const [activeuser, setActiveuser] = useState<any>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const pathname = usePathname();
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const handleUser = async () => {
-      if (user?.email) {
-        try {
-          const data = await getUser(user.email);
-          setActiveuser(data);
-        } catch (error) {
-          console.error("Failed to fetch user role:", error);
-        }
-      }
-    };
-    handleUser();
-  }, [user?.email]);
-
-  console.log(user)
-
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
-
-  // Check session user role first (if available), then fallback to database activeuser state
-const userRole = isMounted ? (user as any)?.role || activeuser?.role : null;
-  const activeMenu = userRole === "admin" ? adminMenu : userMenu;
-  const SidebarContent = () => (
+// Extracted outside to prevent re-creation loops and unnecessary unmounting
+function SidebarContent({
+  activeMenu,
+  pathname,
+  isMounted,
+  user,
+  activeuser,
+  setIsOpen,
+}: {
+  activeMenu: typeof userMenu;
+  pathname: string;
+  isMounted: boolean;
+  user: any;
+  activeuser: any;
+  setIsOpen: (open: boolean) => void;
+}) {
+  return (
     <>
       {/* Premium Tech Header */}
       <div className="border-b border-zinc-900 p-6 relative flex justify-between items-center">
@@ -208,16 +153,44 @@ const userRole = isMounted ? (user as any)?.role || activeuser?.role : null;
           </div>
         )}
 
-        <motion.button
-          whileHover={{ x: 4 }}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-xs font-mono text-zinc-400 hover:bg-zinc-900/40 hover:text-white transition-colors duration-200"
-        >
-          <Settings size={16} className="text-zinc-500" />
-          <span>CONFIG_PANEL</span>
-        </motion.button>
+       
       </div>
     </>
   );
+}
+
+export default function Sidebar() {
+  const [activeuser, setActiveuser] = useState<any>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const pathname = usePathname();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleUser = async () => {
+      if (user?.email) {
+        try {
+          const data = await getUser(user.email);
+          setActiveuser(data);
+        } catch (error) {
+          console.error("Failed to fetch user role:", error);
+        }
+      }
+    };
+    handleUser();
+  }, [user?.email]);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  const userRole = isMounted ? (user as any)?.role || activeuser?.role : null;
+  const activeMenu = userRole === "admin" ? adminMenu : userMenu;
 
   return (
     <>
@@ -240,7 +213,14 @@ const userRole = isMounted ? (user as any)?.role || activeuser?.role : null;
 
       {/* --- DESKTOP SIDEBAR --- */}
       <aside className="hidden md:flex h-screen w-60 flex-col bg-black text-zinc-100 select-none sticky top-0">
-        <SidebarContent />
+        <SidebarContent
+          activeMenu={activeMenu}
+          pathname={pathname}
+          isMounted={isMounted}
+          user={user}
+          activeuser={activeuser}
+          setIsOpen={setIsOpen}
+        />
       </aside>
 
       {/* --- MOBILE DRAWERS/SHEET LAYERS --- */}
@@ -264,7 +244,14 @@ const userRole = isMounted ? (user as any)?.role || activeuser?.role : null;
               transition={{ type: "spring", bounce: 0, duration: 0.4 }}
               className="fixed inset-y-0 left-0 w-72 bg-black text-zinc-100 flex flex-col z-50 md:hidden select-none border-r border-zinc-900 shadow-2xl"
             >
-              <SidebarContent />
+              <SidebarContent
+                activeMenu={activeMenu}
+                pathname={pathname}
+                isMounted={isMounted}
+                user={user}
+                activeuser={activeuser}
+                setIsOpen={setIsOpen}
+              />
             </motion.div>
           </>
         )}

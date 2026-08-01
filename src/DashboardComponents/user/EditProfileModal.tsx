@@ -1,6 +1,7 @@
 "use client";
 
 import { authClient } from "@/lib/auth-Client";
+import ImageBB from "@/Ui/ImageBB";
 import {
   Button,
   Label,
@@ -12,24 +13,53 @@ import {
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { toast } from "sonner";
 
 export default function EditProfileModal() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
+  const [file, setFile] = useState<File | null>(null);
+  const [bio, setBio] = useState(user?.bio || "");
+  const [preview, setPreview] = useState<string | null>(null);
 
   if (!user) return null;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const formData = Object.fromEntries(new FormData(e.currentTarget));
+    // 1. Capture the form reference immediately before any async code runs
+    const formElement = e.currentTarget;
 
-    console.log(formData);
-    toast.success("Profile updated successfully");
+    let image = user?.image;
+    if (file) {
+      const uploadedImageUrl = await ImageBB(file);
+      if (uploadedImageUrl) {
+        image = uploadedImageUrl;
+      }
+    }
+
+    // 2. Use the safely captured formElement
+    const formData = Object.fromEntries(new FormData(formElement));
+
+    const { data, error } = await authClient.updateUser({
+      name: String(formData.name),
+      username: String(formData.username),
+      image,
+      bio,
+      phone: String(formData.phone),
+      country: String(formData.country),
+      github: String(formData.github),
+      linkedin: String(formData.linkedin),
+    });
+
+    if (data) {
+      toast.success("Profile updated successfully");
+    } else if (error) {
+      toast.error("Profile not updated");
+    }
   };
-
   return (
     <Modal>
       <Button
@@ -64,12 +94,20 @@ export default function EditProfileModal() {
 
                 <Modal.Body className="space-y-8 p-6 overflow-y-auto max-h-[70vh] scrollbar-hide">
                   <div className="relative w-fit group">
-                    {user?.image ? (
+                    {user?.image && !preview ? (
                       <Image
                         src={user.image}
                         width={100}
                         height={100}
                         alt="image"
+                        className="h-28 w-28 border-4 rounded-full border-black ring-2 ring-neutral-800 group-hover:ring-neutral-600 transition-all duration-300 object-cover"
+                      />
+                    ) : preview ? (
+                      <Image
+                        src={preview}
+                        width={100}
+                        height={100}
+                        alt="preview"
                         className="h-28 w-28 border-4 rounded-full border-black ring-2 ring-neutral-800 group-hover:ring-neutral-600 transition-all duration-300 object-cover"
                       />
                     ) : (
@@ -78,6 +116,13 @@ export default function EditProfileModal() {
                       </div>
                     )}
                     <input
+                      onChange={(e) => {
+                        const selectedFile = e.target.files?.[0];
+                        if (selectedFile) {
+                          setFile(selectedFile);
+                          setPreview(URL.createObjectURL(selectedFile));
+                        }
+                      }}
                       type="file"
                       id="profile-image"
                       accept="image/*"
@@ -90,7 +135,6 @@ export default function EditProfileModal() {
                       <Plus size={18} strokeWidth={2.5} />
                     </label>
                   </div>
-
                   <Surface
                     variant="default"
                     className="rounded-2xl p-5 bg-neutral-900/30 border border-neutral-800"
@@ -101,6 +145,7 @@ export default function EditProfileModal() {
                           Full Name
                         </Label>
                         <input
+                          type="text"
                           name="name"
                           defaultValue={user?.name}
                           className="w-full bg-black p-1.5 border border-neutral-800 rounded-lg text-white"
@@ -111,8 +156,9 @@ export default function EditProfileModal() {
                           Username
                         </Label>
                         <input
+                          type="text"
                           name="username"
-                          defaultValue={(user as any)?.username}
+                          defaultValue={user?.username}
                           className="w-full bg-black p-1.5 border border-neutral-800 rounded-lg text-white"
                         />
                       </TextField>
@@ -121,7 +167,6 @@ export default function EditProfileModal() {
                           Email
                         </Label>
                         <input
-                          name="email"
                           defaultValue={user?.email}
                           disabled
                           className="w-full bg-neutral-950 p-1.5 border border-neutral-800 rounded-lg text-neutral-600 cursor-not-allowed"
@@ -132,6 +177,7 @@ export default function EditProfileModal() {
                           Phone
                         </Label>
                         <input
+                          type="tel"
                           name="phone"
                           defaultValue={(user as any)?.phone}
                           className="w-full bg-black p-1.5 border border-neutral-800 rounded-lg text-white"
@@ -142,6 +188,7 @@ export default function EditProfileModal() {
                           Country
                         </Label>
                         <input
+                          type="text"
                           name="country"
                           defaultValue={(user as any)?.country}
                           className="w-full bg-black p-1.5 border border-neutral-800 rounded-lg text-white"
@@ -152,9 +199,9 @@ export default function EditProfileModal() {
                           Bio
                         </Label>
                         <TextArea
-                          name="bio"
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
                           rows={4}
-                          defaultValue={(user as any)?.bio}
                           className="w-full bg-black p-1.5 border border-neutral-800 rounded-lg text-white"
                         />
                       </TextField>
@@ -165,7 +212,9 @@ export default function EditProfileModal() {
                     variant="default"
                     className="rounded-2xl p-5 bg-neutral-900/30 border border-neutral-800"
                   >
-                    <h3 className="mb-5 text-lg font-semibold">Social Links</h3>
+                    <h3 className="mb-5 text-lg text-neutral-300 font-semibold">
+                      Social Links
+                    </h3>
                     <div className="space-y-4">
                       <TextField variant="secondary">
                         <Label className="text-xs text-neutral-500">
@@ -176,6 +225,7 @@ export default function EditProfileModal() {
                             <FaGithub className="text-neutral-500" />
                           </span>
                           <input
+                            type="text"
                             name="github"
                             defaultValue={(user as any)?.github}
                             className="w-full bg-black p-1.5 border border-neutral-800 rounded-lg text-white pl-10"
@@ -193,6 +243,7 @@ export default function EditProfileModal() {
                             <FaLinkedin className="text-neutral-500" />
                           </span>
                           <input
+                            type="text"
                             name="linkedin"
                             defaultValue={(user as any)?.linkedin}
                             className="w-full bg-black p-1.5 border border-neutral-800 rounded-lg text-white pl-10"
@@ -208,7 +259,7 @@ export default function EditProfileModal() {
                   <Button
                     slot="close"
                     variant="secondary"
-                    className="text-neutral-400"
+                    className="bg-white text-black"
                   >
                     Cancel
                   </Button>

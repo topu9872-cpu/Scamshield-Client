@@ -13,7 +13,6 @@ export default function UserProfilePage() {
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
-  // Handle loading state to prevent crashes when user is undefined
   if (isPending) {
     return (
       <div className="min-h-screen bg-[#07070a] text-neutral-200 flex items-center justify-center">
@@ -31,7 +30,6 @@ export default function UserProfilePage() {
     );
   }
 
-  // Safely parse the creation date
   const joinedYear = user?.createdAt ? new Date(user.createdAt).getFullYear() : null;
 
   return (
