@@ -8,33 +8,50 @@ import {
   Zap
 } from "lucide-react";
 import { toast } from "sonner";
+import { scannerPost } from "@/app/api/serverAction";
 
-const scanTypes = [
+export type ScanType = "url" | "email" | "phone" | "text";
+
+export interface Scan {
+  type: ScanType;
+  value: string;
+}
+
+const scanTypes:{
+  id:ScanType;
+  label:string;
+  icon:React.ReactNode
+}[] = [
   { id: "url", label: "Website URL", icon: <Globe size={16} /> },
   { id: "email", label: "Email", icon: <Mail size={16} /> },
   { id: "phone", label: "Phone", icon: <Phone size={16} /> },
   { id: "text", label: "Text/Message", icon: <MessageSquare size={16} /> },
 ];
 
+
+
 export default function ScamScanner() {
-  const [activeType, setActiveType] = useState("url");
-  const [loading, setLoading] = useState(false);
+const [activeType, setActiveType] = useState<ScanType>("url");  const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+const [value, setValue] = useState("");
+const handleScan = async () => {
+  setLoading(true);
 
-  const handleScan = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setResult({
-        status: "scam",
-        score: 89,
-        summary: "Phishing patterns detected in domain structure.",
-        time: "Just now"
-      });
-      toast.error("High risk detected", { description: "This input has been flagged as a potential scam." });
-    }, 2500);
-  };
+  try {
+    const res = await scannerPost({
+      type: activeType,
+      value,
+    });
 
+    console.log(res);
+    toast.success("Scan completed");
+  } catch (error) {
+    console.error(error);
+    toast.error("Input is required");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="min-h-screen bg-[#07070a] text-neutral-200 p-6 md:p-12">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -62,7 +79,8 @@ export default function ScamScanner() {
           </div>
 
           <div className="flex gap-3">
-            <input 
+            <input value={value}
+            onChange={(e)=>setValue(e.target.value)}
               className="flex-1 bg-[#07070a] border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-white/30 outline-none"
               placeholder={`Enter ${activeType} to scan...`}
             />

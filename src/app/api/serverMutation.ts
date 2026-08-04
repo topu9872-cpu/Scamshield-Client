@@ -3,9 +3,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_URL;
 export const userPostData = async (url: string, data: unknown) => {
   const fullUrl = `${BASE_URL}${url}`;
 
-  console.log("POST URL:", fullUrl);
-  console.log("POST DATA:", data);
-
   try {
     const res = await fetch(fullUrl, {
       method: "POST",
@@ -16,15 +13,6 @@ export const userPostData = async (url: string, data: unknown) => {
     });
 
     if (!res.ok) {
-      const errorText = await res.text();
-
-      console.error("POST Request Failed:", {
-        status: res.status,
-        statusText: res.statusText,
-        url: fullUrl,
-        response: errorText,
-      });
-
       throw new Error(`POST failed: ${res.status} ${res.statusText}`);
     }
 
