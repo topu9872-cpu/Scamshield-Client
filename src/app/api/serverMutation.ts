@@ -1,10 +1,10 @@
 const BASE_URL = process.env.NEXT_PUBLIC_URL;
 
 export const userPostData = async (url: string, data: unknown) => {
-  const fullUrl = `${BASE_URL}${url}`;
+console.log(BASE_URL,url)
 
   try {
-    const res = await fetch(fullUrl, {
+    const res = await fetch(`${BASE_URL}${url}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -13,6 +13,7 @@ export const userPostData = async (url: string, data: unknown) => {
     });
 
     if (!res.ok) {
+        console.log(await res.json());
       throw new Error(`POST failed: ${res.status} ${res.statusText}`);
     }
 

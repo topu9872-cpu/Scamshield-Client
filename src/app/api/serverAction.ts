@@ -1,6 +1,7 @@
-import { Scan } from "@/DashboardComponents/user/ScamScanner";
+import { Scan } from "@/types/scan";
 import { getData, userPostData } from "./serverMutation";
-import { Users } from "./Type";
+import { Users } from "@/types/Users";
+
 
 export const WellComeUser = async (data: { data: Users }) => {
   return userPostData("/send-email", data);
