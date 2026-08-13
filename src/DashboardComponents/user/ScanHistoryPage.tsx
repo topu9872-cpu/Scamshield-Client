@@ -2,27 +2,41 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Trash2, Eye, Filter, ChevronDown, Trash, Trash2Icon } from "lucide-react";
-import { toast } from "sonner";
+import { Search } from "lucide-react";
 import { DeleteProjectDialog } from "./BestUIAlertDialog";
 
-
-const initialHistory = [
-  { id: 1, type: "URL", value: "crypto-reward-giveaway.com", risk: "Scam Detected", date: "2026-07-08" },
-  { id: 2, type: "Email", value: "support@bank-secure-update.net", risk: "Suspicious", date: "2026-07-07" },
-  { id: 3, type: "Phone", value: "+1-800-555-0199", risk: "Safe", date: "2026-07-06" },
-  { id: 4, type: "Text", value: "You have won a lottery, click here...", risk: "Scam Detected", date: "2026-07-05" },
-];
-
-export default function ScanHistoryPage() {
-  const [history] = useState(initialHistory);
+export default function ScanHistoryPage({ scanHistory }) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
 
+  // Handle data mapping (checking if scanHistory is an array or wrapped in an object)
+  const historyArray = Array.isArray(scanHistory) 
+    ? scanHistory 
+    : scanHistory?.history || [];
+
+  // --- DERIVE RISK LEVEL DYNAMICALLY ---
+  const getRiskLevel = (item) => {
+    if (item.isScam) return "Scam Detected";
+    if (item.score > 50) return "Suspicious";
+    return "Safe";
+  };
+
+  // --- FORMAT DATE HELPER ---
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? "N/A" : date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   // --- FILTERING LOGIC ---
-  const filteredData = history.filter((item) => {
-    const matchesSearch = item.value.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = activeFilter === "All" || item.risk === activeFilter;
+  const filteredData = historyArray.filter((item) => {
+    const matchesSearch = item.value?.toLowerCase().includes(search.toLowerCase());
+    const riskLevel = getRiskLevel(item);
+    const matchesCategory = activeFilter === "All" || riskLevel === activeFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -41,7 +55,6 @@ export default function ScanHistoryPage() {
             />
           </div>
           
-          {/* Functional Filter Dropdown */}
           <select 
             className="bg-[#07070a] border border-white/10 rounded-lg px-4 py-2 text-sm outline-none cursor-pointer"
             value={activeFilter}
@@ -61,6 +74,8 @@ export default function ScanHistoryPage() {
               <tr>
                 <th className="px-6 py-4">Type</th>
                 <th className="px-6 py-4">Value</th>
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">Score</th>
                 <th className="px-6 py-4">Risk Level</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -68,29 +83,46 @@ export default function ScanHistoryPage() {
             <tbody className="divide-y divide-white/5">
               <AnimatePresence mode="popLayout">
                 {filteredData.length > 0 ? (
-                  filteredData.map((item) => (
-                    <motion.tr 
-                      key={item.id} 
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="hover:bg-white/5 transition-colors"
-                    >
-                      <td className="px-6 py-4 font-mono text-xs">{item.type}</td>
-                      <td className="px-6 py-4 truncate max-w-50">{item.value}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                          item.risk === "Safe" ? "border-emerald-500/20 text-emerald-500" :
-                          item.risk === "Suspicious" ? "border-yellow-500/20 text-yellow-500" :
-                          "border-red-500/20 text-red-500"
-                        }`}>{item.risk}</span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <DeleteProjectDialog/>
-                      </td>
-                    </motion.tr>
-                  ))
+                  filteredData.map((item, index) => {
+                    const risk = getRiskLevel(item);
+                    const rowKey = item._id || item.id || index;
+
+                    return (
+                      <motion.tr 
+                        key={rowKey} 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }}
+                        className="hover:bg-white/5 transition-colors"
+                      >
+                        <td className="px-6 py-4 font-mono text-xs uppercase">{item.type}</td>
+                        <td className="px-6 py-4 truncate max-w-50">{item.value}</td>
+                        <td className="px-6 py-4 text-neutral-400 text-xs">{formatDate(item.createdAt)}</td>
+                        <td className="px-6 py-4 font-mono text-xs">
+                          <span className={`px-2 py-0.5 rounded font-bold ${
+                            (item.score ?? 0) > 70 ? "text-red-400 bg-red-500/10" :
+                            (item.score ?? 0) > 40 ? "text-yellow-400 bg-yellow-500/10" :
+                            "text-emerald-400 bg-emerald-500/10"
+                          }`}>
+                            {item.score ?? 0}/100
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                            risk === "Safe" ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/10" :
+                            risk === "Suspicious" ? "border-yellow-500/20 text-yellow-500 bg-yellow-500/10" :
+                            "border-red-500/20 text-red-500 bg-red-500/10"
+                          }`}>{risk}</span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <DeleteProjectDialog item={item}/>
+                        </td>
+                      </motion.tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-10 text-center text-neutral-500 text-sm">
+                    <td colSpan={6} className="py-10 text-center text-neutral-500 text-sm">
                       No results found for your filter.
                     </td>
                   </tr>

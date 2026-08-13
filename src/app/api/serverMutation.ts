@@ -54,3 +54,19 @@ export const getData = async (url: string) => {
     throw error;
   }
 };
+export const getDelete = async (url: string) => {
+  try {
+    const res = await fetch(`${BASE_URL}${url}`,{
+      method:'DELETE'
+    });
+
+    if (!res.ok) {
+      throw new Error(`GET failed: ${res.status} ${res.statusText}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("getDelete error:", error);
+    throw error;
+  }
+};
