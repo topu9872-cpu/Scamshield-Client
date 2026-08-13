@@ -11,4 +11,5 @@ export interface ScanResult {
 export interface Scan {
   type: ScanType;
   value: string;
+   userEmail: string;
 }

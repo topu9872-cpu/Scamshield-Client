@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { scannerPost } from "@/app/api/serverAction";
 import { ScanResult, ScanType } from "@/types/scan";
+import { Users } from "@/types/Users";
 
 
 
@@ -24,35 +25,42 @@ const scanTypes: {
   { id: "text", label: "Text/Message", icon: <MessageSquare size={16} /> },
 ];
 
-export default function ScamScanner() {
+export default function ScamScanner({user}:{user:Users}) {
   const [activeType, setActiveType] = useState<ScanType>("url");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [value, setValue] = useState("");
-
 const handleScan = async () => {
   if (!value.trim()) {
     toast.error("Input is required");
     return;
   }
 
+  if (!user?.email) {
+    toast.error("User email not found");
+    return;
+  }
+
   try {
     setLoading(true);
+
     const res = await scannerPost({
       type: activeType,
-      value,
+      value: value.trim(),
+      userEmail: user.email,
     });
 
-    setResult(res);
+    console.log("Scanner response:", res);
 
+    setResult(res);
+    toast.success("Scan completed");
   } catch (error) {
-    console.error("4. Error:", error);
+    console.error("Scan failed:", error);
     toast.error("Scan failed");
   } finally {
     setLoading(false);
   }
 };
-
   const isScam = result ? result.isScam || result.score > 50 : false;
 
   return (

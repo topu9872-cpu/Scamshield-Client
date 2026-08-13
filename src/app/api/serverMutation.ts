@@ -1,7 +1,9 @@
 const BASE_URL = process.env.NEXT_PUBLIC_URL;
+export const userPostData = async (
+  url: string,
+  data: unknown,
+) => {
 
-export const userPostData = async (url: string, data: unknown) => {
-console.log(BASE_URL,url)
 
   try {
     const res = await fetch(`${BASE_URL}${url}`, {
@@ -12,12 +14,26 @@ console.log(BASE_URL,url)
       body: JSON.stringify(data),
     });
 
-    if (!res.ok) {
-        console.log(await res.json());
-      throw new Error(`POST failed: ${res.status} ${res.statusText}`);
+    const responseText = await res.text();
+
+    let responseData;
+
+    try {
+      responseData = JSON.parse(responseText);
+    } catch {
+      responseData = {
+        message: responseText,
+      };
     }
 
-    return await res.json();
+    if (!res.ok) {
+      throw new Error(
+        responseData?.message ||
+          `POST failed: ${res.status} ${res.statusText}`,
+      );
+    }
+
+    return responseData;
   } catch (error) {
     console.error("userPostData error:", error);
     throw error;
