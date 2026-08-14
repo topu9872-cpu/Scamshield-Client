@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const NavbarPage = () => {
-    const [activeuser, setActiveuser] = useState(null);
+  const [activeuser, setActiveuser] = useState(null);
   const pathName = usePathname();
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -22,7 +22,7 @@ const NavbarPage = () => {
       },
     });
   };
- useEffect(() => {
+  useEffect(() => {
     const hanldeuser = async () => {
       const data = await getUser(user?.email);
       setActiveuser(data);
@@ -39,23 +39,27 @@ const NavbarPage = () => {
           Home
         </Link>
       </li>
+      <li>
+        <Link
+          href="/learn"
+          className={` ${pathName === "/learn" ? "text-white" : "text-gray-400"} text-[15px] font-bold`}
+        >
+          Learn
+        </Link>
+      </li>
 
-   {user && (
-  <li>
-    <Link
-      href={activeuser?.role === "admin" ? "/dashboard/admin" : "/dashboard"}
-      className={`${
-        pathName === (activeuser?.role === "admin"
-          ? "/dashboard/admin"
-          : "/dashboard")
-          ? "text-white"
-          : "text-gray-400"
-      } text-[15px] font-bold`}
-    >
-      Dashboard
-    </Link>
-  </li>
-)}
+      {user && (
+        <li>
+          <Link
+            href="/dashboard"
+            className={`${
+              pathName === "/dashboard" ? "text-white" : "text-gray-400"
+            } text-[15px] font-bold`}
+          >
+            Dashboard
+          </Link>
+        </li>
+      )}
     </>
   );
 

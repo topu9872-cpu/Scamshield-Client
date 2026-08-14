@@ -7,15 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Search,
-  ShieldAlert,
   History,
-  Settings,
-  CircleUserRound,
   User,
-  Users,
-  BarChart3,
   Menu,
   X,
+  CircleUserRound,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-Client";
 import { useEffect, useState } from "react";
@@ -26,14 +22,6 @@ export const userMenu = [
   { title: "Scan", href: "/scan", icon: Search },
   { title: "History", href: "/history", icon: History },
   { title: "Profile", href: "/profile", icon: User },
-];
-
-export const adminMenu = [
-  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Users", href: "/dashboard/users", icon: Users },
-  { title: "Scam Reports", href: "/dashboard/reports", icon: ShieldAlert },
-  { title: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { title: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 // Extracted outside to prevent re-creation loops and unnecessary unmounting
@@ -152,8 +140,6 @@ function SidebarContent({
             </div>
           </div>
         )}
-
-       
       </div>
     </>
   );
@@ -189,8 +175,7 @@ export default function Sidebar() {
     setIsOpen(false);
   }, [pathname]);
 
-  const userRole = isMounted ? (user as any)?.role || activeuser?.role : null;
-  const activeMenu = userRole === "admin" ? adminMenu : userMenu;
+  const activeMenu = userMenu;
 
   return (
     <>
