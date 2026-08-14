@@ -1,10 +1,16 @@
+import { UserData } from "@/lib/UserData";
 import { LazyLoader } from "@/Ui/LazyLoder";
+import { redirect } from "next/navigation";
 
 const Sidebar = LazyLoader(
   () => import("@/DashboardComponents/Sidebar/Sidebar"),
 );
 
-const LayoutPage = ({ children }) => {
+const LayoutPage = async({ children }) => {
+  const user=await UserData()
+  if(!user){
+    redirect('/auth')
+  }
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-black">
       <Sidebar />
