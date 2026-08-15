@@ -1,4 +1,4 @@
-export type ScanType = "url" | "email" | "phone" | "text";
+export type ScanType = "url" | "phone" | "text";
 
 // Define the shape of the result object returned from scannerPost
 export interface ScanResult {

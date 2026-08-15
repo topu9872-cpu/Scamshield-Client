@@ -14,16 +14,22 @@ export const scannerPost = async (data: Scan) => {
   return userPostData(`/scanner-data`, data);
 };
 
-export const getScanHistory = async (email: string) => {
-  return getData(`/scan-history/${email}`);
-};
-
 export const getScanHistoryPaginated = async (
   email: string,
   page: number = 1,
   limit: number = 10,
+  search: string = "",
+  filter: string = "All",
+  sortBy: string = "createdAt",
+  sortOrder: string = "desc"
 ) => {
-  return getData(`/scan-history/${email}?page=${page}&limit=${limit}`);
+  return getData(
+    `/scan-history/${email}?page=${page}&limit=${limit}&search=${encodeURIComponent(
+      search
+    )}&filter=${encodeURIComponent(filter)}&sortBy=${encodeURIComponent(
+      sortBy
+    )}&sortOrder=${encodeURIComponent(sortOrder)}`
+  );
 };
 
 export const ScanHistoryDelete = async (id: string) => {

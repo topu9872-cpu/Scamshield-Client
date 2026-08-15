@@ -6,7 +6,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   Globe,
-  Mail,
   Phone,
   MessageSquare,
   Loader2,
@@ -29,12 +28,6 @@ const scanTypes = [
     placeholder: "https://example.com",
   },
   {
-    id: "email" as ScanType,
-    label: "Email",
-    icon: <Mail size={16} />,
-    placeholder: "Paste suspicious email content...",
-  },
-  {
     id: "phone" as ScanType,
     label: "Phone",
     icon: <Phone size={16} />,
@@ -44,39 +37,33 @@ const scanTypes = [
     id: "text" as ScanType,
     label: "Text / Message",
     icon: <MessageSquare size={16} />,
-    placeholder: "Paste suspicious message...",
+    placeholder: "Paste suspicious message or email...",
   },
 ];
 
 export default function ScamScanner({ user }: { user: Users }) {
   const [activeType, setActiveType] = useState<ScanType>("url");
-
+  const [phoneContext, setPhoneContext] = useState("");
   const [inputs, setInputs] = useState<Record<ScanType, string>>({
     url: "",
-    email: "",
     phone: "",
     text: "",
   });
   const [results, setResults] = useState<Record<ScanType, ScanResult | null>>({
     url: null,
-    email: null,
     phone: null,
     text: null,
   });
   const [loadingMap, setLoadingMap] = useState<Record<ScanType, boolean>>({
     url: false,
-    email: false,
     phone: false,
     text: false,
   });
   const [reportedMap, setReportedMap] = useState<Record<ScanType, boolean>>({
     url: false,
-    email: false,
     phone: false,
     text: false,
   });
-
-  const activeScanType = scanTypes.find((t) => t.id === activeType);
 
   const handleInputChange = (type: ScanType, val: string) => {
     setInputs((prev) => ({ ...prev, [type]: val }));
@@ -90,17 +77,12 @@ export default function ScamScanner({ user }: { user: Users }) {
       return false;
     }
 
-    // =========================
-    // URL
-    // =========================
     if (type === "url") {
-      // Reject if looks like an email address
       if (trimmed.includes("@")) {
         toast.error("Please enter a valid website URL, not an email address.");
         return false;
       }
 
-      // Reject if looks like a phone number
       const phoneTest = trimmed.replace(/[\s\-\+\(\)]/g, "");
       if (/^\d{7,15}$/.test(phoneTest)) {
         toast.error("Please enter a valid website URL, not a phone number.");
@@ -109,14 +91,10 @@ export default function ScamScanner({ user }: { user: Users }) {
 
       try {
         const parsed = new URL(
-          trimmed.includes("://") ? trimmed : `https://${trimmed}`,
+          trimmed.includes("://") ? trimmed : `https://${trimmed}`
         );
 
-        if (!parsed.hostname) {
-          throw new Error();
-        }
-
-        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        if (!parsed.hostname || (parsed.protocol !== "http:" && parsed.protocol !== "https:")) {
           throw new Error();
         }
       } catch {
@@ -126,28 +104,12 @@ export default function ScamScanner({ user }: { user: Users }) {
       return true;
     }
 
-    // =========================
-    // EMAIL CONTENT
-    // =========================
-    else if (type === "email") {
- 
-      return true;
-    }
-
-    // =========================
-    // PHONE
-    // =========================
-    else if (type === "phone") {
+    if (type === "phone") {
       const cleanPhone = trimmed.replace(/[\s\-\+\(\)]/g, "");
-
       if (!/^\d{7,15}$/.test(cleanPhone)) {
         toast.error("Please enter a valid phone number.");
         return false;
       }
-      return true;
-    }
-    else if (type === "text") {
-     
       return true;
     }
 
@@ -156,7 +118,6 @@ export default function ScamScanner({ user }: { user: Users }) {
 
   const handleTypeChange = (newType: ScanType) => {
     setActiveType(newType);
-    // Clear results and reported state for the new type (start fresh)
     setResults((prev) => ({ ...prev, [newType]: null }));
     setReportedMap((prev) => ({ ...prev, [newType]: false }));
   };
@@ -170,11 +131,6 @@ export default function ScamScanner({ user }: { user: Users }) {
       return;
     }
 
-    if (!user?.email) {
-      toast.error("User email not found.");
-      return;
-    }
-
     try {
       setLoadingMap((prev) => ({ ...prev, [typeToScan]: true }));
       setResults((prev) => ({ ...prev, [typeToScan]: null }));
@@ -183,7 +139,10 @@ export default function ScamScanner({ user }: { user: Users }) {
       const res = await scannerPost({
         type: typeToScan,
         value: input,
-        userEmail: user.email,
+        userEmail: user?.email,
+        ...(typeToScan === "phone" && {
+          context: phoneContext.trim(),
+        }),
       });
 
       setResults((prev) => ({ ...prev, [typeToScan]: res }));
@@ -201,6 +160,7 @@ export default function ScamScanner({ user }: { user: Users }) {
     setInputs((prev) => ({ ...prev, [typeToReset]: "" }));
     setResults((prev) => ({ ...prev, [typeToReset]: null }));
     setReportedMap((prev) => ({ ...prev, [typeToReset]: false }));
+    if (typeToReset === "phone") setPhoneContext("");
   };
 
   const handleReport = (typeToReport: ScanType) => {
@@ -248,10 +208,7 @@ export default function ScamScanner({ user }: { user: Users }) {
                     {type.icon}
                     {type.label}
                     {isTabLoading && (
-                      <Loader2
-                        size={14}
-                        className="animate-spin text-neutral-500 ml-1"
-                      />
+                      <Loader2 size={14} className="animate-spin text-neutral-500 ml-1" />
                     )}
                     {!isTabLoading && hasResult && (
                       <span className="h-2 w-2 rounded-full bg-emerald-500 ml-1" />
@@ -277,16 +234,16 @@ export default function ScamScanner({ user }: { user: Users }) {
               score >= 80
                 ? "Critical Risk"
                 : score >= 60
-                  ? "High Risk"
-                  : score >= 40
-                    ? "Medium Risk"
-                    : "Low Risk";
+                ? "High Risk"
+                : score >= 40
+                ? "Medium Risk"
+                : "Low Risk";
             const riskColor =
               score >= 60
                 ? "text-red-400"
                 : score >= 40
-                  ? "text-yellow-400"
-                  : "text-emerald-400";
+                ? "text-yellow-400"
+                : "text-emerald-400";
 
             return (
               <div key={tab.id} className="space-y-6">
@@ -308,66 +265,92 @@ export default function ScamScanner({ user }: { user: Users }) {
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-3 md:flex-row">
-                    {tab.id === "email" || tab.id === "text" ? (
-                      <textarea
-                        value={tabValue}
-                        onChange={(e) =>
-                          handleInputChange(tab.id, e.target.value)
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && e.ctrlKey)
-                            handleScan(tab.id);
-                        }}
-                        disabled={tabLoading}
-                        rows={5}
-                        className="min-h-33 flex-1 resize-none rounded-xl border border-white/10 bg-[#07070a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-white/30 disabled:opacity-60"
-                        placeholder={tab.placeholder}
-                      />
+                  <div className="flex flex-col gap-3">
+                    {/* MAIN INPUT */}
+                    {tab.id === "text" ? (
+                      <>
+                        <textarea
+                          value={tabValue}
+                          onChange={(e) => handleInputChange(tab.id, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.ctrlKey) {
+                              e.preventDefault();
+                              handleScan(tab.id);
+                            }
+                          }}
+                          disabled={tabLoading}
+                          rows={7}
+                          className="min-h-40 w-full resize-none rounded-xl border border-white/10 bg-[#07070a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-white/30 disabled:opacity-60"
+                          placeholder={tab.placeholder}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleScan(tab.id)}
+                          disabled={tabLoading}
+                          className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-bold text-black transition hover:bg-neutral-200 disabled:opacity-50"
+                        >
+                          {tabLoading ? (
+                            <>
+                              <Loader2 size={18} className="animate-spin" />
+                              Scanning...
+                            </>
+                          ) : (
+                            <>
+                              <Search size={18} />
+                              Scan Message
+                            </>
+                          )}
+                        </button>
+                      </>
                     ) : (
-                      <input
-                        type={tab.id === "url" ? "url" : "tel"}
-                        value={tabValue}
-                        onChange={(e) =>
-                          handleInputChange(tab.id, e.target.value)
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleScan(tab.id);
-                        }}
-                        disabled={tabLoading}
-                        className="h-12 flex-1 rounded-xl border border-white/10 bg-[#07070a] px-4 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-white/30 disabled:opacity-60"
-                        placeholder={tab.placeholder}
-                      />
+                      <div className="flex flex-col gap-3 md:flex-row">
+                        <input
+                          type={tab.id === "url" ? "url" : "tel"}
+                          value={tabValue}
+                          onChange={(e) => handleInputChange(tab.id, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleScan(tab.id);
+                            }
+                          }}
+                          disabled={tabLoading}
+                          className="h-12 flex-1 rounded-xl border border-white/10 bg-[#07070a] px-4 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-white/30 disabled:opacity-60"
+                          placeholder={tab.placeholder}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => handleScan(tab.id)}
+                          disabled={tabLoading}
+                          className="flex h-12 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-bold text-black transition hover:bg-neutral-200 disabled:opacity-50"
+                        >
+                          {tabLoading ? (
+                            <>
+                              <Loader2 size={18} className="animate-spin" />
+                              Scanning...
+                            </>
+                          ) : (
+                            <>
+                              <Search size={18} />
+                              Scan Now
+                            </>
+                          )}
+                        </button>
+                      </div>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => handleScan(tab.id)}
-                      disabled={tabLoading}
-                      className="flex h-12 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-bold text-black transition hover:bg-neutral-200 disabled:opacity-50 md:self-end"
-                    >
-                      {tabLoading ? (
-                        <>
-                          <Loader2 size={18} className="animate-spin" />{" "}
-                          Scanning...
-                        </>
-                      ) : (
-                        <>
-                          <Search size={18} /> Scan Now
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between">
-                    <p className="text-xs text-neutral-600">
-                      {tab.id === "email" || tab.id === "text"
-                        ? "Press Ctrl + Enter to scan"
-                        : "Press Enter to scan"}
-                    </p>
-                    <p className="text-xs text-neutral-600">
-                      {tabValue.length} characters
-                    </p>
+                    {/* PHONE CONTEXT */}
+                    {tab.id === "phone" && (
+                      <textarea
+                        value={phoneContext}
+                        onChange={(e) => setPhoneContext(e.target.value)}
+                        disabled={tabLoading}
+                        rows={3}
+                        className="w-full resize-none rounded-xl border border-white/10 bg-[#07070a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-white/30 disabled:opacity-60"
+                        placeholder="Why are you suspicious? Example: Caller asked for OTP and claimed to be from my bank."
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -381,8 +364,7 @@ export default function ScamScanner({ user }: { user: Users }) {
                       Analyzing {tab.label.toLowerCase()}
                     </h3>
                     <p className="mt-2 text-sm text-neutral-500">
-                      ScamShield is checking available security signals and
-                      AI-based patterns.
+                      ScamShield is checking available security signals and AI-based patterns.
                     </p>
                   </div>
                 )}
@@ -391,24 +373,22 @@ export default function ScamScanner({ user }: { user: Users }) {
                 {tabResult && !tabLoading && (
                   <div className="space-y-6">
                     <div
-                      className={`rounded-3xl border bg-[#0b0b10] p-6 md:p-8 ${isScam ? "border-red-500/20" : "border-emerald-500/20"}`}
+                      className={`rounded-3xl border bg-[#0b0b10] p-6 md:p-8 ${
+                        isScam ? "border-red-500/20" : "border-emerald-500/20"
+                      }`}
                     >
                       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                         <div>
                           <div
-                            className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${isScam ? "text-red-400" : "text-emerald-400"}`}
+                            className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+                              isScam ? "text-red-400" : "text-emerald-400"
+                            }`}
                           >
-                            {isScam ? (
-                              <ShieldAlert size={17} />
-                            ) : (
-                              <ShieldCheck size={17} />
-                            )}
+                            {isScam ? <ShieldAlert size={17} /> : <ShieldCheck size={17} />}
                             {isScam ? "Scam Detected" : "Appears Safe"}
                           </div>
                           <h2 className="mt-2 text-2xl font-bold text-white">
-                            {isScam
-                              ? "Potential threat detected"
-                              : "No major threat detected"}
+                            {isScam ? "Potential threat detected" : "No major threat detected"}
                           </h2>
                           <p className="mt-2 max-w-xl text-sm leading-6 text-neutral-500">
                             {tabResult.summary}
@@ -419,14 +399,10 @@ export default function ScamScanner({ user }: { user: Users }) {
                           <p className="text-xs uppercase tracking-wider text-neutral-600">
                             Risk Score
                           </p>
-                          <p
-                            className={`mt-1 text-4xl font-black ${riskColor}`}
-                          >
+                          <p className={`mt-1 text-4xl font-black ${riskColor}`}>
                             {score}%
                           </p>
-                          <p
-                            className={`mt-1 text-xs font-semibold ${riskColor}`}
-                          >
+                          <p className={`mt-1 text-xs font-semibold ${riskColor}`}>
                             {riskLevel}
                           </p>
                         </div>
@@ -436,7 +412,9 @@ export default function ScamScanner({ user }: { user: Users }) {
                         <div className="h-2 overflow-hidden rounded-full bg-white/5">
                           <div
                             style={{ width: `${Math.min(score, 100)}%` }}
-                            className={`h-full transition-all duration-800 ${score >= 60 ? "bg-red-500" : score >= 40 ? "bg-yellow-500" : "bg-emerald-500"}`}
+                            className={`h-full transition-all duration-800 ${
+                              score >= 60 ? "bg-red-500" : score >= 40 ? "bg-yellow-500" : "bg-emerald-500"
+                            }`}
                           />
                         </div>
                         <div className="mt-2 flex justify-between text-[10px] text-neutral-600">
@@ -452,12 +430,10 @@ export default function ScamScanner({ user }: { user: Users }) {
                       {/* AI Insights */}
                       <div className="rounded-3xl border border-white/10 bg-[#0b0b10] p-6">
                         <h3 className="flex items-center gap-2 font-bold text-white">
-                          <Zap size={17} className="text-yellow-500" /> AI
-                          Insights
+                          <Zap size={17} className="text-yellow-500" /> AI Insights
                         </h3>
                         <div className="mt-5">
-                          {tabResult.insights &&
-                          tabResult.insights.length > 0 ? (
+                          {tabResult.insights && tabResult.insights.length > 0 ? (
                             <ul className="space-y-3">
                               {tabResult.insights.map((insight, index) => (
                                 <li
@@ -475,17 +451,11 @@ export default function ScamScanner({ user }: { user: Users }) {
                           ) : (
                             <div className="space-y-3">
                               <div className="flex gap-3 rounded-xl border border-white/6 bg-white/2 p-3 text-sm text-neutral-500">
-                                <CheckCircle2
-                                  size={15}
-                                  className="mt-0.5 shrink-0 text-emerald-500"
-                                />
+                                <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-500" />
                                 No immediate structural anomalies found.
                               </div>
                               <div className="flex gap-3 rounded-xl border border-white/6 bg-white/2 p-3 text-sm text-neutral-500">
-                                <CheckCircle2
-                                  size={15}
-                                  className="mt-0.5 shrink-0 text-emerald-500"
-                                />
+                                <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-500" />
                                 Known threat intelligence checks completed.
                               </div>
                             </div>
@@ -500,31 +470,21 @@ export default function ScamScanner({ user }: { user: Users }) {
                         </h3>
                         <div className="mt-5 space-y-3">
                           <div className="flex items-center justify-between rounded-xl bg-white/3 px-4 py-3">
-                            <span className="text-xs text-neutral-500">
-                              Scan type
-                            </span>
+                            <span className="text-xs text-neutral-500">Scan type</span>
                             <span className="text-xs font-semibold capitalize text-white">
                               {tab.label}
                             </span>
                           </div>
                           <div className="rounded-xl bg-white/3 px-4 py-3">
-                            <span className="text-xs text-neutral-500">
-                              Analyzed input
-                            </span>
+                            <span className="text-xs text-neutral-500">Analyzed input</span>
                             <p className="mt-2 break-all text-xs leading-5 text-neutral-300">
                               {tabValue}
                             </p>
                           </div>
                           <div className="flex items-center justify-between rounded-xl bg-white/3 px-4 py-3">
-                            <span className="text-xs text-neutral-500">
-                              Status
-                            </span>
-                            <span
-                              className={`flex items-center gap-1.5 text-xs font-semibold ${isScam ? "text-red-400" : "text-emerald-400"}`}
-                            >
-                              <span
-                                className={`h-1.5 w-1.5 rounded-full ${isScam ? "bg-red-400" : "bg-emerald-400"}`}
-                              />
+                            <span className="text-xs text-neutral-500">Status</span>
+                            <span className={`flex items-center gap-1.5 text-xs font-semibold ${isScam ? "text-red-400" : "text-emerald-400"}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${isScam ? "bg-red-400" : "bg-emerald-400"}`} />
                               {isScam ? "Potential Threat" : "No Known Threat"}
                             </span>
                           </div>
@@ -543,8 +503,8 @@ export default function ScamScanner({ user }: { user: Users }) {
                             tabReported
                               ? "cursor-not-allowed border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
                               : isScam
-                                ? "border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                              ? "border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                              : "border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                           }`}
                         >
                           {tabReported ? (
@@ -554,9 +514,7 @@ export default function ScamScanner({ user }: { user: Users }) {
                           ) : (
                             <>
                               <Flag size={16} />{" "}
-                              {isScam
-                                ? "Report as Scam"
-                                : "Flag False Positive"}
+                              {isScam ? "Report as Scam" : "Flag False Positive"}
                             </>
                           )}
                         </button>
@@ -582,8 +540,7 @@ export default function ScamScanner({ user }: { user: Users }) {
                       Ready to scan {tab.label.toLowerCase()}
                     </h3>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-neutral-600">
-                      Enter the suspicious {tab.label.toLowerCase()} content
-                      above and click scan to verify safety.
+                      Enter the suspicious {tab.label.toLowerCase()} content above and click scan to verify safety.
                     </p>
                   </div>
                 )}
