@@ -25,6 +25,7 @@ import {
   ResponsiveContainer 
 } from "recharts";
 import { toast } from "sonner";
+import Link from "next/link";
 
 // --- USER-ONLY MOCK DATA (NO GLOBAL ADMIN DATA) ---
 const personalMonthlyVolume = [
@@ -34,13 +35,6 @@ const personalMonthlyVolume = [
   { month: "Apr", myReports: 8 },
   { month: "May", myReports: 6 },
   { month: "Jun", myReports: 11 },
-];
-
-const privateActivityLedger = [
-  { id: "SCM-902", entity: "Telegram Premium Bot Spoof", platform: "Telegram", status: "Pending", date: "July 07" },
-  { id: "SCM-894", entity: "Solana Phantom Wallet Clone", platform: "Crypto / Web3", status: "Verified", date: "July 02" },
-  { id: "SCM-841", entity: "Fake Amazon Overstock Liquidation", platform: "E-Commerce", status: "Verified", date: "June 24" },
-  { id: "SCM-799", entity: "Instagram Meta Badge Phishing", platform: "Instagram", status: "Dismissed", date: "June 18" },
 ];
 
 // --- SPRING ANIMATION VARIANTS (LINEAR/CLERK STYLE) ---
@@ -54,7 +48,14 @@ const blockSpring = {
   visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 17 } },
 };
 
-export default function UserDashboardOverview() {
+export default function UserDashboardOverview({ historyDetails }) {
+ 
+
+  // Safe fallback if historyDetails or its history array is missing/undefined
+  const safeHistory = Array.isArray(historyDetails?.history) 
+    ? historyDetails.history 
+    : [];
+
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -277,12 +278,11 @@ export default function UserDashboardOverview() {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 font-mono">Recent Activity</h3>
                 <p className="text-[11px] text-neutral-500 mt-0.5">Audit log of processing checkpoints for your filings</p>
               </div>
-              <button 
-                onClick={() => toast.info("Opening localized archive console view...")} 
+              <Link href={'/history'}
                 className="text-[11px] text-blue-400 hover:text-blue-300 font-semibold transition-colors flex items-center gap-1 group/btn cursor-pointer"
               >
                 View History <ArrowUpRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-              </button>
+              </Link>
             </div>
 
             <div className="overflow-x-auto">
@@ -296,28 +296,56 @@ export default function UserDashboardOverview() {
                   </tr>
                 </thead>
                 <tbody className="text-xs divide-y divide-white/5 text-neutral-300">
-                  {privateActivityLedger.map((item) => (
-                    <tr key={item.id} className="hover:bg-white/5 transition-colors group">
-                      <td className="py-3.5 px-5 font-mono text-[11px] text-neutral-500 font-bold group-hover:text-blue-400 transition-colors">
-                        {item.id}
+                  {safeHistory.length > 0 ? (
+                    safeHistory.slice(0, 5).map((item) => {
+                      // Map MongoDB fields to match UI property expectations safely
+                      const displayId = item._id ? String(item._id).slice(-6).toUpperCase() : (item.id || "N/A");
+                      const displayEntity = item.value || item.entity || "Unknown Entity";
+                      
+                      // Derive status badge appearance based on isScam / score or explicit status
+                      let badgeText = item.status;
+                      let badgeType = item.status;
+                      if (!badgeText) {
+                        badgeType = item.isScam ? "Verified" : "Pending";
+                        badgeText = item.isScam ? "Scam " : "Safe";
+                      }
+
+                      const displayDate = item.createdAt 
+                        ? new Date(item.createdAt).toLocaleDateString() 
+                        : (item.date || "N/A");
+
+                      return (
+                        <tr key={item._id || item.id} className="hover:bg-white/5 transition-colors group">
+                          <td className="py-3.5 px-5 font-mono text-[11px] text-neutral-500 font-bold group-hover:text-blue-400 transition-colors">
+                            {displayId}
+                          </td>
+                          <td className="py-3.5 px-4 font-medium text-neutral-200 max-w-50 truncate" title={displayEntity}>
+                            {displayEntity}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-wide ${
+                              badgeType === "Verified" || item.isScam
+                                ? "bg-red-500/10 text-red-400 border border-red-500/20" 
+                                : badgeType === "safe"
+                                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            }`}>
+                              {badgeText}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-5 text-right text-neutral-500 font-mono">
+                            {displayDate}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-neutral-500 font-mono text-xs">
+                        No recent activity records found.
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-neutral-200 max-w-50 truncate">
-                        {item.entity}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-wide ${
-                          item.status === "Verified" 
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-                            : item.status === "Pending"
-                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                            : "bg-white/5 text-neutral-400 border border-white/10"
-                        }`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-5 text-right text-neutral-500 font-mono">{item.date}</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

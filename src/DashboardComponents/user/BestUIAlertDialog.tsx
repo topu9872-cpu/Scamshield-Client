@@ -6,15 +6,14 @@ import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export function DeleteProjectDialog({ item }) {
-const router=useRouter()
+export function DeleteProjectDialog({ item ,fetchScanHistory}) {
 const handleDelete = async () => {
     try {
       const res = await ScanHistoryDelete(item._id);
 
       if (res?.success || res?.acknowledged) {
         toast.success(`${item.value} is deleted`);
-        router.refresh();
+       fetchScanHistory()
       } else {
         toast.error(`${item.value} is not deleted`);
       }
